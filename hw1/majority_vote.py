@@ -1,4 +1,5 @@
 import sys
+import numpy as np
 
 train_input = sys.argv[1]
 test_input = sys.argv[2]
@@ -12,7 +13,11 @@ print(f"The train_out file is: {train_out}")
 print(f"The test_out file is: {test_out}")
 print(f"The metrics_out file is: {metrics_out}")
 
-with open(test_input) as f:
-    s = f.read()
+with open(train_input) as train_input_file:
+    train_input_data = train_input_file.read()
+
+    train_input_data_matrix = np.array(train_input_data)
+    print(train_input_data_matrix.shape)
+    
 
 #print(s)
