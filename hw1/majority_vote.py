@@ -14,9 +14,12 @@ print(f"The test_out file is: {test_out}")
 print(f"The metrics_out file is: {metrics_out}")
 
 # Obtained from https://stackoverflow.com/questions/49522800/numpy-read-tsv-file-as-ndarray
-train_input_data = np.genfromtxt(fname=train_input, delimiter="\t", skip_header=1, filling_values=1)
+train_input_data = np.genfromtxt(fname=train_input, delimiter="\t", skip_header=0, filling_values=1)
 
-print(train_input_data)
-    
+num_rows, num_cols = train_input_data.shape
+for i in range(num_rows):
+    for j in range(num_cols):
+        print("i", i, "j", j, "data", train_input_data[i][j])
+
 
 #print(s)
