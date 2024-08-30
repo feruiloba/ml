@@ -1,5 +1,7 @@
 # ml
 
+To install python it's recommended to use (PyEnv)[https://github.com/pyenv/pyenv]
+
 To create new homework folder run
 ```
 python -m venv hw1
