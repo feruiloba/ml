@@ -1,15 +1,24 @@
 # ml
 
-To install python it's recommended to use (PyEnv)[https://github.com/pyenv/pyenv]
+To install python it's recommended to use [PyEnv](https://github.com/pyenv/pyenv)
+Then install version `3.9.12`
+```
+pyenv install 3.9.12
+```
 
 To create new homework folder run
 ```
 python -m venv hw1
 ```
 
-Before running any python file, activate the virtual environment:
+Before running any python file or installing any package, activate the virtual environment:
 ```
 source hw1/bin/activate
+```
+
+Then you can add a package
+```
+pip install numpy==1.21.2
 ```
 
 ## HW1
