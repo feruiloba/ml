@@ -361,7 +361,7 @@
 % Commands showing / hiding solutions     %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% To HIDE SOLUTIONS (to post at the website for students), set this value to 0: 
+%% To HIDE SOLUTIONS (to post at the website for students), set this value to 0:
 \def\issoln{0}
 % Some commands to allow solutions to be embedded in the assignment file.
 \ifcsname issoln\endcsname \else \def\issoln{1} \fi
@@ -413,7 +413,7 @@
 \author{\courseName\\
 \url{http://www.cs.cmu.edu/~mgormley/courses/10601/} \\
 OUT: Monday, August 26th \\
-DUE: \dueDate{} \\ 
+DUE: \dueDate{} \\
 }
 
 \date{}
@@ -534,7 +534,7 @@ xleftmargin=0pt
     #1
 }
 
-% Note from Matt: This should allow us to get down to just 
+% Note from Matt: This should allow us to get down to just
 % one your_code_solution, but isn't working properly yet.
 %
 % \usepackage{keycommand}
@@ -551,11 +551,11 @@ xleftmargin=0pt
 
 %%%%%%%%%%%%%%%%%%
 % Begin Document %
-%%%%%%%%%%%%%%%%%% 
+%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%
 % Begin Document %
-%%%%%%%%%%%%%%%%%% 
+%%%%%%%%%%%%%%%%%%
 
 \begin{document}
 
@@ -567,7 +567,7 @@ xleftmargin=0pt
 
 \item\textbf{Late Submission Policy:} See the late submission policy here: \url{http://www.cs.cmu.edu/~mgormley/courses/10601/syllabus.html#late-homework-policy}
 
-\item\textbf{Submitting your work:} 
+\item\textbf{Submitting your work:}
 
 \begin{itemize}
 
@@ -585,7 +585,7 @@ Each derivation/proof should be  completed on a separate page. For short answer 
 
 \end{itemize}
 
-%Homework 9 will be on Gradescope, but will be "Canvas-style"- all problems will be multiple choice, select all that apply, or numerical answer. 
+%Homework 9 will be on Gradescope, but will be "Canvas-style"- all problems will be multiple choice, select all that apply, or numerical answer.
 
 For multiple choice or select all that apply questions, shade in the box or circle in the template document corresponding to the correct answer(s) for each of the questions. For \LaTeX{} users, replace \lstinline{\choice} with \lstinline{\CorrectChoice} to obtain a shaded box/circle, and don't change anything else.\clearpage
 
@@ -622,7 +622,7 @@ For ``Select all that apply" questions, please fill in all appropriate squares c
     {%
     \checkboxchar{$\Box$} \checkedchar{$\blacksquare$} % change checkbox style locally
     \begin{checkboxes}
-    \CorrectChoice Matt Gormley  
+    \CorrectChoice Matt Gormley
     \CorrectChoice Henry Chai
     \choice Isaac Newton
     \choice I don't know
@@ -637,7 +637,7 @@ Again, if you need to change your answer, you may cross out the previous answer(
     {%
     \checkboxchar{\xcancel{$\blacksquare$}} \checkedchar{$\blacksquare$} % change checkbox style locally
     \begin{checkboxes}
-    \CorrectChoice Matt Gormley 
+    \CorrectChoice Matt Gormley
     \CorrectChoice Henry Chai
     \choice Isaac Newton
     \choice I don't know
@@ -659,7 +659,7 @@ For questions where you must fill in a blank, please make sure your final answer
 \end{quote}
 \clearpage
 
-\section{Programming: Majority Vote Classifier [30 Points]} 
+\section{Programming: Majority Vote Classifier [30 Points]}
 
 \subsection{Introduction}
 The goal of this assignment is to ensure that you:
@@ -676,9 +676,9 @@ The goal of this assignment is to ensure that you:
 \subsubsection{Algorithm}
 
 
-This assignment requires you to implement a Majority Vote Classifier.  Your algorithm should calculate the most common label in the data, ``predict'' that label for each given point in the dataset, and calculate the error rate for the classifier's predictions. You may assume that the output class label is always binary. 
+This assignment requires you to implement a Majority Vote Classifier.  Your algorithm should calculate the most common label in the data, ``predict'' that label for each given point in the dataset, and calculate the error rate for the classifier's predictions. You may assume that the output class label is always binary.
 
-The training procedure should store the label used for prediction at test time. In the case of a tie, output the value that is numerically higher (or comes \emph{last} alphabetically- ie. in a tie between Apples and Bananas, you would return Bananas). At test time, each example should be passed through the classifier. Its predicted label becomes the label most commonly occurring in the train set. 
+The training procedure should store the label used for prediction at test time. In the case of a tie, output the value that is numerically higher (or comes \emph{last} alphabetically- ie. in a tie between Apples and Bananas, you would return Bananas). At test time, each example should be passed through the classifier. Its predicted label becomes the label most commonly occurring in the train set.
 
 \emph{Looking ahead:} This simple algorithm acts as a small component of the Decision \emph{Tree} that you will implement in the next homework assignment. We hope that you will employ best practices when coding so that you can re-use your own code here in the next assignment. A Majority Vote Classifier is simply a decision tree of depth zero (it predicts a class label for the input instance based on the most commonly occurring label present in the data).
 
@@ -693,7 +693,7 @@ The handout contains two datasets. Each one contains attributes and labels and i
 
 \begin{enumerate}
 \item \textbf{heart:}
-    The first task is to predict whether a patient has been (or will be) diagnosed with heart disease, based on available patient information. The attributes (aka. features) are: 
+    The first task is to predict whether a patient has been (or will be) diagnosed with heart disease, based on available patient information. The attributes (aka. features) are:
     \begin{enumerate}
         \item \lstinline{sex}: The sex of the patient---1 if the patient is male, and 0 if the patient is female.
         \item \lstinline{chest_pain}: 1 if the patient has chest pain, and 0 otherwise.
@@ -727,20 +727,20 @@ $ python majority_vote.py [args...]
 \end{lstlisting}
 \end{tabular}
 
-Where above \lstinline{[args...]} is a placeholder for five command-line arguments: 
+Where above \lstinline{[args...]} is a placeholder for five command-line arguments:
 \texttt{<train input> <test input> <train out> <test out> <metrics out>}. These arguments are described in detail below:
 \begin{enumerate}
-\item \lstinline{<train input>}: path to the training input \lstinline{.tsv} file 
-\item \lstinline{<test input>}: path to the test input \lstinline{.tsv} file 
-\item \lstinline{<train out>}: path of output \lstinline{.txt} file to which the predictions on the \textit{training} data should be written 
-\item \lstinline{<test out>}: path of output \lstinline{.txt} file to which the predictions on the \emph{test} data should be written 
-\item \lstinline{<metrics out>}: path of the output \lstinline{.txt} file to which metrics such as train and test error should be written 
+\item \lstinline{<train input>}: path to the training input \lstinline{.tsv} file
+\item \lstinline{<test input>}: path to the test input \lstinline{.tsv} file
+\item \lstinline{<train out>}: path of output \lstinline{.txt} file to which the predictions on the \textit{training} data should be written
+\item \lstinline{<test out>}: path of output \lstinline{.txt} file to which the predictions on the \emph{test} data should be written
+\item \lstinline{<metrics out>}: path of the output \lstinline{.txt} file to which metrics such as train and test error should be written
 \end{enumerate}
 
 As an example, the following command line would run your program on the heart dataset. The train predictions would be written to \lstinline{heart_train_labels.txt}, the test predictions to \lstinline{heart_test_labels.txt}, and the metrics to \lstinline{heart_metrics.txt}.
 %
 \begin{lstlisting}[language=Shell]
-$ python majority_vote.py heart_train.tsv heart_test.tsv \ 
+$ python majority_vote.py heart_train.tsv heart_test.tsv \
     heart_train_labels.txt heart_test_labels.txt heart_metrics.txt
 \end{lstlisting}
 
@@ -816,21 +816,21 @@ Note: For this assignment, you may make arbitrarily many submissions to the auto
 \sectionquestion{\LaTeX{} Point and Template Alignment}
 \begin{parts}
     \part[1] \sone Did you use \LaTeX{} for the entire written portion of this homework?
-    
+
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
-        \choice Yes 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
+        \choice Yes
         \choice No
     \end{checkboxes}
 
     \part[0] \sone I have ensured that my final submission is aligned with the original template given to me in the handout file and that I haven't deleted or resized any items or made any other modifications which will result in a misaligned template. I understand that incorrectly responding yes to this question will result in a penalty equivalent to 2\% of the points on this assignment.\\
     \textbf{Note:} Failing to answer this question will not exempt you from the 2\% misalignment penalty.
-    
+
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
-        \choice Yes 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
+        \choice Yes
     \end{checkboxes}
 \end{parts}
 
@@ -843,23 +843,23 @@ This section covers important course policies that every student should know and
 \begin{parts}
     \part[1] \sone Assignment turned in late without prior approval will incur a daily penalty. How much is the penalty? Up to 1 day: \underline{\hspace{0.5cm}} Up to 2 day: \underline{\hspace{0.5cm}} Up to 3 day:
     \underline{\hspace{0.5cm}} Up to 4 day:
-    \underline{\hspace{0.5cm}} 
-    
+    \underline{\hspace{0.5cm}}
+
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice 5\%, 10\%, 15\%, 20\%
         \choice 10\%, 20\%, 30\%, 40\%
         \choice 25\%, 50\%, 75\%, 100\%
         \choice 20\%, 40\%, 60\%, 80\%
     \end{checkboxes}
 
-    
+
     \part[1] \sone How many grace days do you have in total for all homework? Can you combine grace days with late days to extend a homework submission deadline by more than 3 days?
-    
+
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice As many as I want; Of course!
         \choice 6; No
         \choice 6; Yes
@@ -869,52 +869,52 @@ This section covers important course policies that every student should know and
 
 
     \part[1] \sall Seeking help from other students in understanding course materials needed to solve homework problems is ALLOWED under which of the following conditions?
-    
+
     {%
     \checkboxchar{$\Box$} \checkedchar{$\blacksquare$}
     \begin{checkboxes}
         % YOUR ANSWER
         % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice Any written notes are taken on an impermanent surface (e.g. whiteboard, chalkboard) and discarded before writing up one's solution alone.
-        
+
         \choice Learning is facilitated not circumvented; i.e., the purpose of seeking help is to learn and understand the problem instead of merely getting an answer
-            
+
         \choice Help both given and received is reported in collaboration questions in the homework
-            
+
         \choice The student updates his/her collaborative questions even if it is after submitting their own assignment
-        
+
         \choice None of the above
     \end{checkboxes}
     }
-    
+
     \part[1] \sall Which of the following is (are) strictly forbidden in solving and submitting homework?
-    
+
     {%
     \checkboxchar{$\Box$} \checkedchar{$\blacksquare$}
     \begin{checkboxes}
         % YOUR ANSWER
         % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice Searching on the internet for solutions or sample codes
-        
+
         \choice Consulting people outside this class who have seen or solved the problem before
-            
+
         \choice Turning in someone else's homework
-            
+
         \choice Using anyone else's, or allowing other classmates to use your computer or Gradescope account in connection with this course
-        
+
         \choice None of the above
     \end{checkboxes}
     }
-    
+
     \part[1] \sone If you solved your assignment completely on your own, you can skip the collaboration questions at the end of each homework.
 
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice True
         \choice False
     \end{checkboxes}
-    
+
     \part What is (are) the consequence(s) of being caught cheating in this course?
     \begin{subparts}
     \subpart[1] \sall First instance of cheating:
@@ -922,17 +922,17 @@ This section covers important course policies that every student should know and
     \checkboxchar{$\Box$} \checkedchar{$\blacksquare$}
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice Failure of the course
-        
+
         \choice AIV report to university authorities
-            
+
         \choice Negative 100\% on the assignment
-        
+
         \choice None of the above
     \end{checkboxes}
     }
-    
+
     \subpart[1] \sall Second instance of cheating:
     {%
     \checkboxchar{$\Box$} \checkedchar{$\blacksquare$}
@@ -940,28 +940,28 @@ This section covers important course policies that every student should know and
         % YOUR ANSWER
         % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice Failure of the course
-        
+
         \choice AIV report to university authorities
-        
+
         \choice Negative 100\% on the assignment
 
         \choice None of the above
     \end{checkboxes}
     }
     \end{subparts}
-    
 
-    \part[1] \sone Assume a difficult situation arises in the middle of the semester (e.g. medical, personal etc.) that might prevent you from submitting assignments on time or working as well as you would like. What should you do? 
-    
+
+    \part[1] \sone Assume a difficult situation arises in the middle of the semester (e.g. medical, personal etc.) that might prevent you from submitting assignments on time or working as well as you would like. What should you do?
+
     \begin{checkboxes}
         % YOUR ANSWER
         % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice Email the education associates (EAs) for the course, your college liaison, and advisor (being sure to include the latter two in the case of a medical emergency) early so they can point you to the available resources on campus and make necessary arrangements
-        
+
         \choice Do not speak to the course staff, try to finish the class, reach out to the course staff in the end of the semester explaining your special situation
     \end{checkboxes}
-    
-    \part[1] \sone If you have an emergency or university approved travel and need to request an extension for one of the homework assignments in the course, what should you do? 
+
+    \part[1] \sone If you have an emergency or university approved travel and need to request an extension for one of the homework assignments in the course, what should you do?
 
     \begin{checkboxes}
         % YOUR ANSWER
@@ -980,7 +980,7 @@ This section covers important course policies that every student should know and
         % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice Machine learning concept(s)
         \choice Current written answer or code sample
-        \choice Problem number 
+        \choice Problem number
         \choice None of the above
     \end{checkboxes}
 \end{parts}
@@ -999,7 +999,7 @@ This section covers important course policies that every student should know and
     \begin{checkboxes}
         % YOUR ANSWER
         % Change \choice to \CorrectChoice for the appropriate selection/selections
-        \choice True
+        \CorrectChoice True
         \choice False
     \end{checkboxes}
 
@@ -1007,11 +1007,11 @@ This section covers important course policies that every student should know and
 
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice True
         \choice False
     \end{checkboxes}
-    
+
     \part[1] \sone Whether your car is wet in the morning ($W$) is dependent on whether it rained last night ($R$) or not, however other factors may have lead to your car being wet. The following are probabilities of such events:
     \begin{eqnarray*}
         & P(R) = 0.4\\
@@ -1021,14 +1021,14 @@ This section covers important course policies that every student should know and
 
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice 0.64
         \choice 0.56
         \choice 0.44
         \choice 0.4
     \end{checkboxes}
-    
-\part Consider the following joint probability table where both $X$ and $Y$ are binary variables:\\[12pt] 
+
+\part Consider the following joint probability table where both $X$ and $Y$ are binary variables:\\[12pt]
     \begin{tabular}{ccc}
     $X$ & $Y$ & Probability \\
     0 & 0 & 0.1\\
@@ -1043,7 +1043,7 @@ This section covers important course policies that every student should know and
 
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice $\frac{2}{3}$
         \choice $\frac{3}{7}$
         \choice $\frac{4}{5}$
@@ -1055,7 +1055,7 @@ This section covers important course policies that every student should know and
 
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice 0.2
         \choice 0.6
         \choice 0.5
@@ -1070,7 +1070,7 @@ This section covers important course policies that every student should know and
 
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice 16
         \choice 1
         \choice $\frac{1}{16}$
@@ -1081,7 +1081,7 @@ This section covers important course policies that every student should know and
 
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice $\frac{1}{8}$
         \choice 2
         \choice 32
@@ -1092,7 +1092,7 @@ This section covers important course policies that every student should know and
 
 \part
     Let $A$, $B$, and $C$ be random variables with discrete probability distributions. Consider the following two joint probability tables: one relating $A$ and $B$, and the other relating $B$ and $C$.
-    
+
     $$\begin{array}{c|ccc}
     _{\large A}\backslash^{\large B} & b_1 & b_2 & b_3 \\
     \hline
@@ -1111,12 +1111,12 @@ This section covers important course policies that every student should know and
 
 \begin{subparts}
     \subpart[1] \sall Which of the following statements are necessarily \textbf{false}?  Note $X$ \rotatebox[origin=c]{90}{$\models$} $Y$ indicates that random variable $X$ is independent of random variable $Y$.
-    
+
     {%
     \checkboxchar{$\Box$} \checkedchar{$\blacksquare$}
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice $A$ \rotatebox[origin=c]{90}{$\models$} $B$
         \choice $B$ \rotatebox[origin=c]{90}{$\models$} $C$
         \choice $C$ \rotatebox[origin=c]{90}{$\models$} $B$
@@ -1125,37 +1125,37 @@ This section covers important course policies that every student should know and
     }
 
 % \clearpage
-    % \subpart[1] What is $P(B=b_1 | A = a_2, C = c_4)$? If this value cannot be computed, write N/A. Ignore when $P(A=a_2, C=c_4)=0$ for this problem, if such a case is possible. 
-    
+    % \subpart[1] What is $P(B=b_1 | A = a_2, C = c_4)$? If this value cannot be computed, write N/A. Ignore when $P(A=a_2, C=c_4)=0$ for this problem, if such a case is possible.
+
     % \begin{your_solution}[height=2cm, width=4cm]
     %     % YOUR ANSWER
     % \end{your_solution}
-    
-    % \subpart[1] What is $P(B=b_2 | A = a_3, C = c_3)$? If this value cannot be computed, write N/A. Ignore when $P(A=a_3, C=c_3)=0$ for this problem, if such a case is possible. 
-    
+
+    % \subpart[1] What is $P(B=b_2 | A = a_3, C = c_3)$? If this value cannot be computed, write N/A. Ignore when $P(A=a_3, C=c_3)=0$ for this problem, if such a case is possible.
+
     % \begin{your_solution}[height=2cm, width=4cm]
     %     % YOUR ANSWER
     % \end{your_solution}
-    
+
 
     \subpart[2] \sone True or False: $\sum_{i=1}^3 P(B=b_i|C=c_1) = \sum_{j=1}^4 P(C=c_j|B=b_1)$
 
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice True
         \choice False
     \end{checkboxes}
-    
+
 
 \end{subparts}
 
-        
-    \part[2] \sone Consider two random variables $X, Y$. Assume that we have $P(X=x) = \frac{1}{2^x}$ for $x \in \mathbb{Z}_{\geq 1}$ (integers greater than or equal to 1) and $P(Y=y|X=x) = \frac{1}{n}$ for $y \in \{1,2,...,n\}$. Assume $n$ is a fixed positive integer constant. What is $\mathbb{E}[Y]$? 
-    
+
+    \part[2] \sone Consider two random variables $X, Y$. Assume that we have $P(X=x) = \frac{1}{2^x}$ for $x \in \mathbb{Z}_{\geq 1}$ (integers greater than or equal to 1) and $P(Y=y|X=x) = \frac{1}{n}$ for $y \in \{1,2,...,n\}$. Assume $n$ is a fixed positive integer constant. What is $\mathbb{E}[Y]$?
+
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice $\sum_{y=1}^n y \frac{1}{2^y}$
         \choice $\sum_{y=1}^n y \frac{5}{3^y}$
         \choice $\sum_{y=1}^n \frac{y}{n}$
@@ -1163,8 +1163,8 @@ This section covers important course policies that every student should know and
     \end{checkboxes}
 
     \part[1] Please match the probability density function of the random variable X to its corresponding distribution name.
-    
-    
+
+
     \begin{enumerate}[label=\Alph*)]
         \item $P(X=x) = \frac{1}{\sqrt{(2\pi)^d |\sum|}}\exp(-\frac{1}{2}(x - \mu)^T\sum^{-1}(x-\mu))$
         \item $P(X=x) = \lambda e^{-\lambda x}$ when $x \geq 0$; 0 otherwise
@@ -1189,37 +1189,37 @@ This section covers important course policies that every student should know and
             \end{your_solution}
 
 \end{parts}
-\clearpage 
+\clearpage
 \newpage
 \sectionquestion{Linear Algebra}
 \begin{parts}
     \part[1] \sone The matrix $\mathbf{A}=\begin{bmatrix} 2 & 1 & 4 \\ -3 & 2 & 0 \\ 1 & 3 & -2 \end{bmatrix}$ has an inverse.
-    
+
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice True
         \choice False
     \end{checkboxes}
 
 
     \part[2] \sall
-    If $A = \begin{bmatrix} 1 & 2 \\ 2 & 4 \end{bmatrix}$, then which of the following are true? 
+    If $A = \begin{bmatrix} 1 & 2 \\ 2 & 4 \end{bmatrix}$, then which of the following are true?
     {    \checkboxchar{$\Box$} \checkedchar{$\blacksquare$} % change checkbox style locally
     \begin{checkboxes}
-    \choice $A$ is invertible 
+    \choice $A$ is invertible
     \choice $A$ has rank $2$
     \choice $A$ has determinant $0$
     \choice $A$ has trace $5$
     \choice None of the above
     \end{checkboxes}
     }
-    
-    \part[2] \sone Consider two vectors $\xv = \begin{bmatrix} x_1 \\ x_2 \\ x_3 \end{bmatrix}$ and $\yv = \begin{bmatrix} y_1 \\ y_2 \\ y_3 \end{bmatrix}$. Let $z = \xv^T \yv$. What is $\frac{\partial z}{\partial y_2}$? 
-    
+
+    \part[2] \sone Consider two vectors $\xv = \begin{bmatrix} x_1 \\ x_2 \\ x_3 \end{bmatrix}$ and $\yv = \begin{bmatrix} y_1 \\ y_2 \\ y_3 \end{bmatrix}$. Let $z = \xv^T \yv$. What is $\frac{\partial z}{\partial y_2}$?
+
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice $y_2$
         \choice $x_2$
         \choice $\xv$
@@ -1227,16 +1227,16 @@ This section covers important course policies that every student should know and
     \end{checkboxes}
 
     \part[2] Consider two vectors $\xv = \begin{bmatrix} x_1 \\ x_2 \\ x_3 \end{bmatrix}$ and $\yv = \begin{bmatrix} y_1 \\ y_2 \\ y_3 \end{bmatrix}$. Let $z = \xv^T \yv$. What are the dimensions of $\frac{\partial z}{\partial y}$, expressed as row by column (Ex: $10 \times 301$ where $10$ is the number of rows and $301$ is the number of columns).
-    
+
     \begin{tcolorbox}[fit,height=1cm, width=2cm, blank, borderline={1pt}{-2pt}]
     %solution
     \end{tcolorbox}
-    
+
     \part[2] \sone Given matrix $\mathbf{X}=\begin{bmatrix} 3 & 4 & 2 \\ 1 & 6 & 2 \\ 1 & 4 & 4 \end{bmatrix} $ and the column vector $\mathbf{y}=\begin{bmatrix} -6 \\ 1 \\ 1 \end{bmatrix}$, what is the eigenvalue of $\mathbf{X}$ associated with $\mathbf{y}$? (Recall an eigenvector of a matrix $\mathbf{A} \in \mathbb{R}^{n \times n}$ is a nonzero vector $\vv \in \mathbb{R}^n$ such that $\mathbf{A}\vv = \lambda\vv$ where we call the scalar $\lambda$ the associated eigenvalue for $\vv$.)
 
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice $-5$
         \choice $-3$
         \choice $2$
@@ -1248,15 +1248,15 @@ This section covers important course policies that every student should know and
 
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice It must be wrong because there cannot be multiple eigenvectors corresponding to a single eigenvalue.
         \choice It must be wrong because the eigenvectors are linearly dependent and thus cannot both be solutions to $\Av\vv=2\vv$.
         \choice It is correct because there may be multiple eigenvectors corresponding to an eigenvalue, and any two eigenvectors of a matrix are linearly dependent.
-        \choice It is correct because both vectors are solutions to $\Av\vv=2\vv$. 
+        \choice It is correct because both vectors are solutions to $\Av\vv=2\vv$.
     \end{checkboxes}
-    
-    
-    
+
+
+
     \clearpage
 \end{parts}
 
@@ -1288,7 +1288,7 @@ This section covers important course policies that every student should know and
 
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice $3x\sin(z) e^{-x}(2+x)$
         \choice $-6x\sin(z) e^{-x}$
         \choice $3x\sin(z) e^{-x}(2-x)$
@@ -1300,26 +1300,26 @@ This section covers important course policies that every student should know and
 
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice a local minimum
         \choice a local maximum
         \choice a local minimum or a local maximum
         \choice None of the above
     \end{checkboxes}
 
-    
+
     \part[2] \sone Suppose that $f(\xv|\thetav)=\xv^T\thetav$, where $\xv, \thetav \in \mathbb{R}^n$. The function $g(\thetav)$ is defined as $g(\thetav) = \left(f \left(\xv^{(1)}|\thetav \right) - y^{(1)} \right)^2$ for some $\xv^{(1)} \in \mathbb{R}^n$ and $y^{(1)} \in \mathbb{R}$. What is the function type of $g(\thetav)$:
 
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice $g: \mathbb{R}^n \rightarrow \mathbb{R}$
         \choice $g: \mathbb{R} \rightarrow \mathbb{R}$
         \choice $g: \mathbb{R} \rightarrow \mathbb{R}^n$
         \choice $g: (\mathbb{R}^n \times \mathbb{R}^n) \rightarrow \mathbb{R}$
     \end{checkboxes}
 
-    
+
     \clearpage
 \end{parts}
 
@@ -1336,7 +1336,7 @@ This section covers important course policies that every student should know and
     \subpart[2] \sone Consider any two points $\mathbf{x'}$ and $\mathbf{x''}$ on the line $\mathbf{w^Tx} + b = 0$. Select the correct statement describing the relationship between $\mathbf{w^T}$ and $\mathbf{x' - x''}$.
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice The inner product $\mathbf{w^T(x' - x'')}$ is 0
         \choice The inner product $\mathbf{w^T(x' - x'')}$ is 1
         \choice The inner product $\mathbf{w^T(x' - x'')}$ is $b$
@@ -1345,10 +1345,10 @@ This section covers important course policies that every student should know and
 
     \subpart[2] \sone What relationship does the vector $\wv$ share with the line $\mathbf{w^Tx}+b = 0$?
     (assume $\mathbf{x}$ and $\mathbf{w}$ are both two dimensional column vectors, and $\mathbf{w}^T$ indicates the transpose of the column vector $\mathbf{w}$.)
-    
+
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice parallel
         \choice orthogonal
         \choice depends on the value of $b$
@@ -1357,12 +1357,12 @@ This section covers important course policies that every student should know and
 
 \end{subparts}
 
-    
+
     \part[2] \sone Let $\mathbf{w}, \mathbf{x}$ be $d$-dimensional vectors. What is the distance from the origin to the line $\mathbf{w^Tx}+b=0$?
-        
+
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice $\frac{|b|}{||\mathbf{w}||}$
         \choice $\frac{d|b|}{||\mathbf{w}||}$
         \choice $\frac{||\mathbf{w}||}{|b|}$
@@ -1379,7 +1379,7 @@ This section covers important course policies that every student should know and
      \choice $\dfrac{ \av^{T} \bv }{ ||\bv||^2 } \bv$
      \choice $\dfrac{ \cos(\av^{T} \bv) }{ ||\bv||^2 } \bv$
     \end{oneparcheckboxes}
-    
+
 
     \clearpage
 \end{parts}
@@ -1391,43 +1391,43 @@ This section covers important course policies that every student should know and
 
     \part \textbf{Big-O Notation:}
     For each pair $(f,g)$ of functions below, select which of the following are true:
-    
+
     \begin{subparts}
-    
+
     \subpart[1] \sone $f(n)=\frac{n}{10}, g(n)=log_{10}(n)$
-    
-    \begin{oneparcheckboxes} 
+
+    \begin{oneparcheckboxes}
     \choice $f(n) \in O(g(n))$
     \choice $g(n) \in O(f(n))$
     \choice Both
     \choice Neither
     \end{oneparcheckboxes}
-    
-    
+
+
     \subpart[1] \sone $f(n)=n^{50}, g(n)=50^n$
-    
-    \begin{oneparcheckboxes} 
+
+    \begin{oneparcheckboxes}
     \choice $f(n) \in O(g(n))$
     \choice $g(n) \in O(f(n))$
     \choice Both
     \choice Neither
     \end{oneparcheckboxes}
-    
+
     \end{subparts}
 
     \part[2]
         Lucas numbers are defined as follows. Evaluate $L_{4}$ (Consider writing a recursive function to solve it).
-        \[ L_n = \begin{cases} 
+        \[ L_n = \begin{cases}
               1 & \text{if } n \le 1 \\
               n * L_{n-1} + L_{n-1} & \text{if } n > 1
            \end{cases}
         \]
-        
+
         \begin{your_solution}[height=2cm, width=4cm]
             % YOUR ANSWER
         \end{your_solution}
-            
-    
+
+
     % \newpage
 
     \part
@@ -1437,35 +1437,35 @@ def fib_1(n):
     if n == 0 or n == 1:
         return n
     return fib_1(n - 1) + fib_1(n - 2)
-    
+
 d = {0: 0, 1: 1}
 def fib_2(n):
     if n in d:
         return d[n]
     d[n] = fib_2(n - 1) + fib_2(n - 2)
     return d[n]
-        
+
     \end{lstlisting}
     \begin{subparts}
-    \subpart[1] \sone Which of the following is the tightest upper bound on the time complexity of computing \lstinline{fib_1(n)}? 
+    \subpart[1] \sone Which of the following is the tightest upper bound on the time complexity of computing \lstinline{fib_1(n)}?
 
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice $O(n)$
         \choice $O(n \log n)$
         \choice $O(2^n)$
         \choice $O(n!)$
     \end{checkboxes}
 
-    
+
     \clearpage
-    
-    \subpart[1] \sone Which of the following is the tightest upper bound on the time complexity of computing \lstinline{fib_2(n)}? 
+
+    \subpart[1] \sone Which of the following is the tightest upper bound on the time complexity of computing \lstinline{fib_2(n)}?
 
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice $O(n)$
         \choice $O(n \log n)$
         \choice $O(2^n)$
@@ -1481,22 +1481,22 @@ def fib_2(n):
         \caption{Britain's Royal Family}
         \label{fig:family}
     \end{figure}
-    
+
     \part[1] \sone Using the tree shown in Figure \ref{fig:family}, how many nodes would depth-first-search visit in finding Mia Tindall (including her node)? Assume we search left-to-right and top-down.
 
     \begin{checkboxes}
         % YOUR ANSWER
-        % Change \choice to \CorrectChoice for the appropriate selection/selections 
+        % Change \choice to \CorrectChoice for the appropriate selection/selections
         \choice 3
         \choice 12
         \choice 15
         \choice 18
     \end{checkboxes}
 
-    
+
     \clearpage
-    \part Figure \ref{tree} is a Binary Tree with indexed nodes. Assume root node is node 1. 
-    
+    \part Figure \ref{tree} is a Binary Tree with indexed nodes. Assume root node is node 1.
+
     \begin{figure}[H]
         \centering
         \includegraphics[width = 0.4\textwidth]{fig/TreePlot.png}
@@ -1505,92 +1505,92 @@ def fib_2(n):
     \end{figure}
 
     \begin{subparts}
-    
-    \subpart[1] What is the node-visit order of \textbf{DFS} and \textbf{BFS} of the above Binary Tree? 
-    
+
+    \subpart[1] What is the node-visit order of \textbf{DFS} and \textbf{BFS} of the above Binary Tree?
+
     A depth-first search (DFS) traversal of a binary tree starts with visiting the root node, and recursively searches down the left subtree (i.e., the tree rooted at the left node) before going to search the right subtree (i.e., the tree rooted at the right node) until the traversal is done.\\
     Note: Alternatively, we can also look right subtree before left subtree too, for the question please consider left to right order!
-    
+
     \begin{your_solution}[height=2cm, width=\textwidth, title={The node-visit order of DFS is (separate values with commas, e.g., 1,2,3,4)}]
     %solution
     \end{your_solution}
 
-    \subpart[1] What is the node-visit order of \textbf{BFS} of the above Binary Tree? 
-    
+    \subpart[1] What is the node-visit order of \textbf{BFS} of the above Binary Tree?
+
     A breadth-first search (BFS) traversal of a binary tree visits every node (assuming a left-to-right order) on a level (with the same distance to the root) before going to a lower level until the traversal is done.
-    
+
     \begin{your_solution}[height=2cm, width=\textwidth, title={The node-visit order of BFS is (separate values with commas, e.g., 1,2,3,4)}]
     %solution
     \end{your_solution}
-    
+
     \end{subparts}
-    
-    
+
+
     \clearpage
-    
+
     \part[4] Fill in the blanks in the Python code for key search using recursive depth-first search (DFS) traversal. \emph{(Note: Please put your answer in the boxes below, not on the lines.)}
-    
+
     \begin{lstlisting}[escapechar=@]
 class TreeNode:
     def __init__(self, key):
         self.key = key
         self.leftNode = None
         self.rightNode = None
-        
+
 # (a) the left/right node is denoted as
 #     node.leftNode/node.rightNode
 # (b) left/right node are of type TreeNode
 # (c) the key of the node is denoted as node.key
 # (d) the left node is searched before the right node
-        
+
 def find_val(node, key):
     if node is None:
         return None
-        
+
     if @\underline{~~\textbf{(1)}~~}@:
         return node
-        
+
     else:
         result = @\underline{~~\textbf{(2)}~~}@
-            
+
         if result is None:
             result = @\underline{~~\textbf{(3)}~~}@
-            
+
         return @\underline{~~\textbf{(4)}~~}@
     \end{lstlisting}
-    
+
     \begin{your_code_solution_outer}[height=1.75cm, width=\textwidth, title={Python code for missing field \textbf{(1)}}]
     % Put your solution in the your_code_solution environment
     \begin{your_code_solution}
-    
+
     \end{your_code_solution}
     \end{your_code_solution_outer}
-    
-    
+
+
     \begin{your_code_solution_outer}[height=1.75cm, width=\textwidth, title={Python code for missing field \textbf{(2)}}]
     % Put your solution in the your_code_solution environment
     \begin{your_code_solution}
-    
+
     \end{your_code_solution}
     \end{your_code_solution_outer}
-    
-    
+
+
     \begin{your_code_solution_outer}[height=1.75cm, width=\textwidth, title={Python code for missing field \textbf{(3)}}]
     % Put your solution in the your_code_solution environment
     \begin{your_code_solution}
-    
+
     \end{your_code_solution}
     \end{your_code_solution_outer}
-    
-    
+
+
     \begin{your_code_solution_outer}[height=1.75cm, width=\textwidth, title={Python code for missing field \textbf{(4)}}]
     % Put your solution in the your_code_solution environment
     \begin{your_code_solution}
-    
+
     \end{your_code_solution}
     \end{your_code_solution_outer}
-    
-    
+
+
 \clearpage
 
 \part Consider an $M \times N$ grid where each cell has a cost associated with passing through it. From any given cell, you can either travel to the right (same row, next column) or down (same column, next row). You need to return the minimum possible cost of traveling from the start point $[0, 0]$ in the top left of the grid to the end point $[M-1, N-1]$ in the bottom right of the grid. In Figure \ref{fig:example_grid}, the minimum cost path is highlighted in gold and the cost is $24$. Assume the cost of traveling outside the grid is infinite.
@@ -1602,7 +1602,7 @@ def find_val(node, key):
 \label{fig:example_grid}
 \end{figure}
 
-We will first attempt to solve this using recursion. 
+We will first attempt to solve this using recursion.
 
 \begin{lstlisting}[escapechar=@]
 # grid is of type List[List[int]]
@@ -1612,7 +1612,7 @@ m, n = len(grid), len(grid[0])
 def minCostPath(r, c):
     if @\underline{~~\textbf{(1)}~~}@:
             return @\underline{~~\textbf{(2)}~~}@
-                
+
     if r == m-1 and c == n-1:
         return grid[r][c]
 
@@ -1626,21 +1626,21 @@ minCostPath(0, 0)
     \begin{your_code_solution_outer}[height=1.75cm, width=\textwidth, title={Python code for missing field \textbf{(1)}}]
     % Put your solution in the your_code_solution environment
     \begin{your_code_solution}
-    
+
     \end{your_code_solution}
     \end{your_code_solution_outer}
 
     \begin{your_code_solution_outer}[height=1.75cm, width=\textwidth, title={Python code for missing field \textbf{(2)}}]
     % Put your solution in the your_code_solution environment
     \begin{your_code_solution}
-    
+
     \end{your_code_solution}
     \end{your_code_solution_outer}
 
     \begin{your_code_solution_outer}[height=1.75cm, width=\textwidth, title={Python code for missing field \textbf{(3)}}]
     % Put your solution in the your_code_solution environment
     \begin{your_code_solution}
-    
+
     \end{your_code_solution}
     \end{your_code_solution_outer}
 
@@ -1666,7 +1666,7 @@ Fill in the blanks below. \textbf{Assume fields (1) and (2) use your same soluti
 # grid is of type List[List[int]]
 m, n = len(grid), len(grid[0])
 cache = {}
-        
+
 def minCostPath(r, c):
         if @\underline{~~\textbf{(1)}~~}@:
             return @\underline{~~\textbf{(2)}~~}@
@@ -1686,25 +1686,25 @@ minCostPath(0, 0)
     \begin{your_code_solution_outer}[height=1.75cm, width=\textwidth/2, title=Your Python code for missing field \textbf{(4)}]
     % Put your solution in the your_code_solution environment
     \begin{your_code_solution}
-    
+
     \end{your_code_solution}
     \end{your_code_solution_outer}
    \begin{your_code_solution_outer}[height=1.75cm, width=\textwidth/2, title=Your Python code for missing field \textbf{(5)}]
     % Put your solution in the your_code_solution environment
     \begin{your_code_solution}
-    
+
     \end{your_code_solution}
     \end{your_code_solution_outer}
 
     \begin{your_code_solution_outer}[height=1.75cm, width=\textwidth, title=Your Python code for missing field \textbf{(6)}]
     % Put your solution in the your_code_solution environment
     \begin{your_code_solution}
-    
+
     \end{your_code_solution}
     \end{your_code_solution_outer}
-    
 
-    
+
+
 \end{subparts}
 
 \end{parts}
@@ -1719,7 +1719,7 @@ After you have completed all other components of this assignment, report your an
 \end{enumerate}
 
 \begin{your_solution}[height=6cm]
-% YOUR ANSWER 
+% YOUR ANSWER
 
 \end{your_solution}
 
