@@ -11,6 +11,11 @@ To create new homework folder run
 python -m venv hw1
 ```
 
+You might need to run if you get the "pyenv: python: command not found" error
+```
+pyenv global 3.9.12
+```
+
 Before running any python file or installing any package, activate the virtual environment:
 ```
 source hw1/bin/activate
