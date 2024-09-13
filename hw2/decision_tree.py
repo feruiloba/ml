@@ -1,4 +1,5 @@
 import argparse
+from collections import OrderedDict
 import sys
 import numpy as np  # type: ignore
 
@@ -19,7 +20,8 @@ class Node:
         self.right = None
         self.attr = None
         self.vote = None
-
+        self.header = None
+        self.mutual_info = None
 
 def print_tree(Node):
     pass
@@ -32,62 +34,96 @@ def load_file_contents(input_file_name: str):
     )
     input_data_inputs = input_data[1:, 0 : input_data.shape[1] - 2]
     input_data_outputs = input_data[1:, input_data.shape[1] - 1]
+    input_data_headers = input_data[0,:]
 
-    return (input_data_inputs, input_data_outputs)
+    return (input_data_inputs, input_data_outputs, input_data_headers)
 
 
 def entropy(labels):
     _, counts = np.unique(labels, return_counts=True)
 
-    zero_proportion = counts[0] / labels.size
-    one_proportion = counts[1] / labels.size
+    zero_proportion = counts[0] / labels.size if counts.any() else 0
+    one_proportion = counts[1] / labels.size if counts.any() and counts.size > 1 else 0
 
     return -1 * np.sum(
         [
-            zero_proportion * np.log2(zero_proportion),
-            one_proportion * np.log2(one_proportion),
+            zero_proportion * np.log2(zero_proportion) if zero_proportion > 0 else 0,
+            one_proportion * np.log2(one_proportion) if one_proportion > 0 else 0,
         ]
     )
 
+def split(col_to_split, inputs):
+    col_to_split_bools = col_to_split.astype(bool)
+    inputs_when_zero = inputs[np.invert(col_to_split_bools)]
+    inputs_when_one = inputs[col_to_split_bools]
+
+    return (inputs_when_zero, inputs_when_one)
 
 # Probably not very efficient to iterate over labels/inputs columns many times,
 # but at least it doesn't grow exponentially. Plus no loops!
 def mutual_information(inputs_col, labels):
     entropy_labels = entropy(labels)
     _, counts = np.unique(inputs_col, return_counts=True)
-    fraction_zeros = counts[0] / inputs_col.size
-    fraction_ones = counts[1] / inputs_col.size
 
-    labels_subset_zeros = labels[np.invert(inputs_col.astype(bool))]
-    labels_subset_ones = labels[inputs_col.astype(bool)]
+    fraction_zeros = counts[0] / inputs_col.size if counts.any() else 0
+    fraction_ones = counts[1] / inputs_col.size if counts.any() and counts.size > 1 else  0
+
+    labels_for_zero_input, labels_for_one_input = split(inputs_col, labels)
 
     return entropy_labels - np.sum(
         [
-            fraction_zeros * entropy(labels_subset_zeros),
-            fraction_ones * entropy(labels_subset_ones),
+            fraction_zeros * entropy(labels_for_zero_input),
+            fraction_ones * entropy(labels_for_one_input),
         ]
     )
 
+def majority_vote(labels):
+    values, counts = np.unique(labels, return_counts=True)
+    if values.size == 0:
+        return None
+    elif values.size == 1:
+        return values[0]
+    else:
+        return values[0] if counts[0] > counts[1] else values[1]
 
-def build_tree(inputs, labels):
+def build_tree(inputs, labels, headers, depth, max_depth):
 
-    biggest_mutual_info = 0
-    biggest_mutual_info_col_index = 0
+    node = Node()
+    node.attr = inputs
+    node.vote = majority_vote(labels)
 
+    if (depth >= max_depth or inputs.shape[1] <= 1):
+        return node
+
+    mutual_informations = {}
     for col_index in range(inputs.shape[1]):
-        mutual_info_col = mutual_information(inputs[:, col_index], labels)
-        print(f"mutual info for {col_index}", mutual_info_col)
-        if mutual_info_col > biggest_mutual_info:
-            biggest_mutual_info = mutual_info_col
-            biggest_mutual_info_col_index = col_index
+         mutual_informations[col_index] = mutual_information(inputs[:, col_index], labels)
 
-    print(
-        "biggest mutual info col",
-        biggest_mutual_info,
-        "biggest_mutual_info_col_index",
-        biggest_mutual_info_col_index,
-    )
+    # https://www.geeksforgeeks.org/python-sort-python-dictionaries-by-key-or-value/
+    sorted_mutual_infos = OrderedDict({key:value for key, value in sorted(mutual_informations.items(), key=lambda mutual_informations: mutual_informations[1])})
 
+    # print("mutual_infos", sorted_mutual_infos)
+
+    col_to_split = sorted_mutual_infos.popitem()
+    node.mutual_info = col_to_split[1]
+    node.header = headers[col_to_split[0]]
+    new_headers = np.delete(headers, col_to_split[0], 0)
+
+    # print(f"splitting by column {headers[col_to_split[0]]} with MI {col_to_split[1]}")
+
+    inputs_with_zero, inputs_with_one = split(inputs[:,col_to_split[0]], inputs)
+    labels_with_zero, labels_with_one = split(inputs[:,col_to_split[0]], labels)
+
+    # print("inputs shape", inputs.shape)
+    # print("inputs with zero shape", inputs_with_zero.shape)
+    # print("labels with zero shape", labels_with_zero.shape)
+    # print("inputs with one shape", inputs_with_one.shape)
+    # print("labels with one shape", labels_with_one.shape)
+
+    node.right = build_tree(inputs_with_zero, labels_with_zero, new_headers, depth + 1, max_depth)
+    node.left = build_tree(inputs_with_one, labels_with_one, new_headers, depth + 1, max_depth)
+
+    return node
 
 if __name__ == "__main__":
     # This takes care of command line argument parsing for you!
@@ -126,8 +162,8 @@ if __name__ == "__main__":
     # Here's an example of how to use argparse
     print_out = args.print_out
 
-    train_inputs, train_labels = load_file_contents(args.train_input)
-    build_tree(train_inputs, train_labels)
+    train_inputs, train_labels, headers = load_file_contents(args.train_input)
+    head_node = build_tree(train_inputs, train_labels, headers, 0, 3)
 
     # Here is a recommended way to print the tree to a file
     # with open(print_out, "w") as file:
