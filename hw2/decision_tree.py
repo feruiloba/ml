@@ -95,7 +95,7 @@ def majority_vote(labels):
         return values[0]
     else:
         return values[0] if counts[0] > counts[1] else values[1]
-    
+
 def stats(labels):
     values, counts = np.unique(labels, return_counts=True)
     if not counts.any():
@@ -107,7 +107,7 @@ def stats(labels):
             return f"[0 0/{counts[0]} 1]"
     else:
         return f"[{counts[0]} 0/{counts[1]} 1]"
-    
+
 def are_all_inputs_the_same(inputs):
     _, counts = np.unique(inputs, return_counts=True)
     return (not counts.any()) or counts[0] == 0 or inputs.size == counts[0]
@@ -163,7 +163,7 @@ def predict_row_label(node: Node, inputs, headers):
             return predict_row_label(node.left, inputs, headers)
         else:
             return predict_row_label(node.right, inputs, headers)
-        
+
 def predict(node, inputs, headers):
     predicted_labels = []
     for row in inputs:
@@ -183,7 +183,7 @@ def get_error_ratio(predicted_outputs, real_outputs):
 def print_tree_inner(node, depth = 0):
     if node.left == None and node.right == None:
         return ""
-    
+
     depth_string = "| " * (depth + 1)
 
     return (f"\n{depth_string} {node.header} = 0: {node.stats_zeros}" + print_tree_inner(node.left, depth + 1)
@@ -191,6 +191,23 @@ def print_tree_inner(node, depth = 0):
 
 def print_tree(node, labels):
     return stats(labels) + print_tree_inner(node)
+
+def print_to_file(print_out, content):
+        print(f"Writing to out file {print_out}")
+        with open(print_out, "w") as txt_file:
+            for line in content:
+                txt_file.write(str(line) + "\n")
+
+def print_tree_to_file(print_out, content):
+    print(f"Writing to out file {print_out}")
+    with open(print_out, "w") as txt_file:
+        txt_file.write(str(content) + "\n")
+
+def print_metrics_to_file(print_out, train_error, test_error):
+    print(f"Writing to out file {print_out}")
+    with open(print_out, "w") as txt_file:
+        txt_file.write(f'error(train): {train_error}\n')
+        txt_file.write(f'error(test): {test_error}\n')
 
 if __name__ == "__main__":
     # This takes care of command line argument parsing for you!
@@ -226,23 +243,6 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    def print_to_file(print_out, content):
-        print(f"Writing to out file {print_out}")
-        with open(print_out, "w") as txt_file:
-            for line in content:
-                txt_file.write(str(line) + "\n")
-
-    def print_tree_to_file(print_out, content):
-        print(f"Writing to out file {print_out}")
-        with open(print_out, "w") as txt_file:
-            txt_file.write(str(content) + "\n")
-
-    def print_metrics_to_file(print_out, train_error, test_error):
-        print(f"Writing to out file {print_out}")
-        with open(print_out, "w") as txt_file:
-            txt_file.write(f'error(train): {train_error}\n')
-            txt_file.write(f'error(test): {test_error}\n')
-
     train_inputs, train_labels, train_headers, labels_header = load_file_contents(args.train_input)
     # print("train_inputs.shape", train_inputs.shape, "train_labels.shape", train_labels.shape, "train_headers.shape", train_headers.shape, "labels_header", labels_header)
 
@@ -250,7 +250,7 @@ if __name__ == "__main__":
 
     train_predicted_labels = predict(head_node, train_inputs, train_headers)
     print_to_file(args.train_out, train_predicted_labels)
-    
+
     test_inputs, test_labels, test_headers, test_labels_header = load_file_contents(args.test_input)
     test_predicted_labels = predict(head_node, test_inputs, test_headers)
     print_to_file(args.test_out, test_predicted_labels)
