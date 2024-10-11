@@ -37,3 +37,10 @@ python majority_vote.py heart_train.tsv heart_test.tsv heart_train_labels.txt he
 ```
 python decision_tree.py heart_train.tsv heart_test.tsv 2 heart_2_train.txt heart_2_test.txt heart_2_metrics.txt heart_2_print.txt
 ```
+
+## HW4
+
+```
+python feature.py smalldata/train_small.tsv smalldata/val_small.tsv smalldata/test_small.tsv glove_embeddings.txt formatted_train_small.tsv formatted_val_small.tsv formatted_test_small.tsv
+python lr.py formatted_train_small.tsv formatted_val_small.tsv formatted_test_small.tsv train_labels_out_small.txt test_labels_out_small.txt metrics_small.txt 500 0.1
+```
