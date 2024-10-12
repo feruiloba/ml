@@ -58,10 +58,22 @@ def trim(dataset, glove_map):
                     new_sentence = np.append(trimmed_dataset[sentence_index], word_value)
                 else:
                     new_sentence = np.array(word_value, dtype=dict)
-                
+
                 trimmed_dataset[sentence_index] = new_sentence
 
     return trimmed_dataset
+
+def trim_2(dataset, glove_map):
+    trimmed_words_matrix = np.array([])
+    for label, sentence in dataset:
+        words = sentence.split()
+        trimmed_words = np.array([])
+        for word in words:
+            if word in glove_map.keys():
+                trimmed_words = np.append(trimmed_words, word)
+        trimmed_words_matrix = np.append(trimmed_words_matrix, trimmed_words)
+
+    return trimmed_words_matrix
 
 def glove_values(trimmed_dataset):
     # print(" blas")
@@ -74,17 +86,17 @@ def glove_values(trimmed_dataset):
         sentence_values = np.zeros(shape=sentence[0]["value"].shape)
         for word in sentence:
             sentence_values = sentence_values + word["value"]
-        
+
         sentence_values = sentence_values / sentence.size
         glove_dataset[sentence_index] = sentence_values
 
     return glove_dataset
-        
+
 def print_globe_values(labels_dataset, globe_dataset, out_file_name):
 
-    with open(out_file_name, "w") as txt_file: 
+    with open(out_file_name, "w") as txt_file:
         for index, sentence in globe_dataset.items():
-            globe_values_tab_separated = " ".join(sentence.astype(str))
+            globe_values_tab_separated = "\t".join(sentence.astype(str))
             txt_file.write(f"{labels_dataset[index][0]}\t{globe_values_tab_separated}\n")
 
 if __name__ == '__main__':
@@ -105,9 +117,10 @@ if __name__ == '__main__':
 
     train_input = load_tsv_dataset(args.train_input)
     train_trimmed_dataset = trim(train_input, glove_map)
+    print(trim_2(train_input, glove_map).shape)
     train_globe_dataset = glove_values(train_trimmed_dataset)
     print_globe_values(train_input, train_globe_dataset, args.train_out)
-    
+
     test_input = load_tsv_dataset(args.test_input)
     test_trimmed_dataset = trim(test_input, glove_map)
     test_globe_dataset = glove_values(test_trimmed_dataset)
@@ -118,4 +131,4 @@ if __name__ == '__main__':
     val_globe_dataset = glove_values(val_trimmed_dataset)
     print_globe_values(test_input, test_globe_dataset, args.validation_out)
 
-    
+
