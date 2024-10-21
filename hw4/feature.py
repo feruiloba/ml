@@ -47,57 +47,43 @@ def load_feature_dictionary(file):
             glove_map[word] = np.array(embedding, dtype=float)
     return glove_map
 
+
 def trim(dataset, glove_map):
-    trimmed_dataset = OrderedDict(dict[int, np.array]())
-    for sentence_index, (sentiment, sentence) in enumerate(dataset):
-        words = sentence.split()
-        for word in words:
-            if word in glove_map.keys():
-                word_value = dict({ "name": word, "value": glove_map[word]})
-                if sentence_index in trimmed_dataset:
-                    new_sentence = np.append(trimmed_dataset[sentence_index], word_value)
-                else:
-                    new_sentence = np.array(word_value, dtype=dict)
-
-                trimmed_dataset[sentence_index] = new_sentence
-
-    return trimmed_dataset
-
-def trim_2(dataset, glove_map):
-    trimmed_words_matrix = np.array([])
+    trimmed_words_dict = OrderedDict(dict())
+    i = 0
     for label, sentence in dataset:
         words = sentence.split()
         trimmed_words = np.array([])
         for word in words:
             if word in glove_map.keys():
                 trimmed_words = np.append(trimmed_words, word)
-        trimmed_words_matrix = np.append(trimmed_words_matrix, trimmed_words)
+        trimmed_words_dict[f"{i}"] = trimmed_words
+        i += 1
 
-    return trimmed_words_matrix
+    return trimmed_words_dict
 
-def glove_values(trimmed_dataset):
-    # print(" blas")
-    # gloved_sentence = dict()
-    # sentence, word, name
-    # print(trimmed_dataset[1][0]["name"])
-    glove_dataset = OrderedDict(dict[int, np.array]())
+def glove_values(trimmed_dataset, glove_map):
+    glove_dataset = np.zeros((len(trimmed_dataset), 300))
 
-    for sentence_index, sentence in trimmed_dataset.items():
-        sentence_values = np.zeros(shape=sentence[0]["value"].shape)
+    i=0
+    for sentence in trimmed_dataset.values():
+        sentence_value = np.zeros(300)
         for word in sentence:
-            sentence_values = sentence_values + word["value"]
-
-        sentence_values = sentence_values / sentence.size
-        glove_dataset[sentence_index] = sentence_values
-
+            if word in glove_map.keys():
+                sentence_value = sentence_value + glove_map[word]
+        glove_dataset[i] = sentence_value / sentence.size
+        i += 1
+        
     return glove_dataset
 
 def print_globe_values(labels_dataset, globe_dataset, out_file_name):
 
     with open(out_file_name, "w") as txt_file:
-        for index, sentence in globe_dataset.items():
+        i=0
+        for sentence in globe_dataset:
             globe_values_tab_separated = "\t".join(sentence.astype(str))
-            txt_file.write(f"{labels_dataset[index][0]}\t{globe_values_tab_separated}\n")
+            txt_file.write(f"{labels_dataset[i][0]}\t{globe_values_tab_separated}\n")
+            i+=1
 
 if __name__ == '__main__':
     # This takes care of command line argument parsing for you!
@@ -117,18 +103,16 @@ if __name__ == '__main__':
 
     train_input = load_tsv_dataset(args.train_input)
     train_trimmed_dataset = trim(train_input, glove_map)
-    print(trim_2(train_input, glove_map).shape)
-    train_globe_dataset = glove_values(train_trimmed_dataset)
+    train_globe_dataset = glove_values(train_trimmed_dataset, glove_map)
     print_globe_values(train_input, train_globe_dataset, args.train_out)
 
     test_input = load_tsv_dataset(args.test_input)
     test_trimmed_dataset = trim(test_input, glove_map)
-    test_globe_dataset = glove_values(test_trimmed_dataset)
+    test_globe_dataset = glove_values(test_trimmed_dataset, glove_map)
     print_globe_values(test_input, test_globe_dataset, args.test_out)
 
     val_input = load_tsv_dataset(args.validation_input)
     val_trimmed_dataset = trim(val_input, glove_map)
-    val_globe_dataset = glove_values(val_trimmed_dataset)
-    print_globe_values(test_input, test_globe_dataset, args.validation_out)
-
+    val_globe_dataset = glove_values(val_trimmed_dataset, glove_map)
+    print_globe_values(val_input, val_globe_dataset, args.validation_out)
 

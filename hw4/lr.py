@@ -59,8 +59,7 @@ def predict(
 ) -> np.ndarray:
 
     predictions = np.array([])
-    theta_xi = np.matmul(X,theta)
-    sigmoid_theta_x = sigmoid(theta_xi)
+    sigmoid_theta_x = sigmoid(X @ theta)
     prediction = (sigmoid_theta_x >= 0.5).astype(int)
     predictions = np.append(predictions, prediction)
 
@@ -70,14 +69,21 @@ def compute_error(
     y_pred : np.ndarray,
     y : np.ndarray
 ) -> float:
-    # TODO: Implement `compute_error` using vectorization
-    pass
+    errorCount = 0
+
+    y_pred[y.astype(bool)]
+    for i in range(y_pred.size):
+        if int(y_pred[i]) != int(y[i]):
+            errorCount += 1
+
+    return errorCount / y_pred.size
 
 def get_labels_features(dataset):
     labels = dataset[:, 0]
     features = dataset[:, 1:dataset.shape[1]]
     features_with_intercept = np.insert(features, 0, 1, 1)
 
+    print("features_with_intercept", features_with_intercept)
     return (labels, features_with_intercept)
 
 def print_to_file(predictions, out_file_name):
@@ -91,14 +97,6 @@ def print_metrics(train_error, test_error, metrics_out):
         txt_file.write(f'error(train): {train_error}\n')
         txt_file.write(f'error(test): {test_error}\n')
 
-def get_error_ratio(predicted_outputs, real_outputs):
-    errorCount = 0
-
-    for i in range(predicted_outputs.size):
-        if int(predicted_outputs[i]) != int(real_outputs[i]):
-            errorCount += 1
-
-    return f'{(errorCount / predicted_outputs.size):.6f}'
 
 if __name__ == '__main__':
     # This takes care of command line argument parsing for you!
@@ -129,12 +127,12 @@ if __name__ == '__main__':
 
     train_predictions = predict(train_thetas, train_X)
     print_to_file(train_predictions, args.train_out)
-    train_error = get_error_ratio(train_predictions, train_y)
+    train_error = compute_error(train_predictions, train_y)
 
     test_dataset = load_tsv_dataset(args.test_input)
     test_y, test_X = get_labels_features(test_dataset)
     test_predictions = predict(train_thetas, test_X)
     print_to_file(test_predictions, args.test_out)
-    test_error = get_error_ratio(test_predictions, test_y)
+    test_error = compute_error(test_predictions, test_y)
 
     print_metrics(train_error, test_error, args.metrics_out)

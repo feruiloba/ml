@@ -24,6 +24,7 @@ source hw1/bin/activate
 Then you can add a package
 ```
 pip install numpy==1.21.2
+pip install matplotlib
 ```
 
 ## HW1
