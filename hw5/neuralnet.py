@@ -9,7 +9,7 @@ What you need to do:
 - Implement NN methods
 
 It is ***strongly advised*** that you finish the Written portion -- at the
-very least, problems 1 and 2 -- before you attempt this programming 
+very least, problems 1 and 2 -- before you attempt this programming
 assignment; the code for forward and backprop relies heavily on the formulas
 you derive in those problems.
 
@@ -25,24 +25,15 @@ from typing import Callable, List, Tuple
 # This takes care of command line argument parsing for you!
 # To access a specific argument, simply access args.<argument name>.
 parser = argparse.ArgumentParser()
-parser.add_argument('train_input', type=str,
-                    help='path to training input .csv file')
-parser.add_argument('validation_input', type=str,
-                    help='path to validation input .csv file')
-parser.add_argument('train_out', type=str,
-                    help='path to store prediction on training data')
-parser.add_argument('validation_out', type=str,
-                    help='path to store prediction on validation data')
-parser.add_argument('metrics_out', type=str,
-                    help='path to store training and testing metrics')
-parser.add_argument('num_epoch', type=int,
-                    help='number of training epochs')
-parser.add_argument('hidden_units', type=int,
-                    help='number of hidden units')
-parser.add_argument('init_flag', type=int, choices=[1, 2],
-                    help='weight initialization functions, 1: random')
-parser.add_argument('learning_rate', type=float,
-                    help='learning rate')
+parser.add_argument('train_input', type=str, help='path to training input .csv file')
+parser.add_argument('validation_input', type=str, help='path to validation input .csv file')
+parser.add_argument('train_out', type=str, help='path to store prediction on training data')
+parser.add_argument('validation_out', type=str, help='path to store prediction on validation data')
+parser.add_argument('metrics_out', type=str, help='path to store training and testing metrics')
+parser.add_argument('num_epoch', type=int, help='number of training epochs')
+parser.add_argument('hidden_units', type=int, help='number of hidden units')
+parser.add_argument('init_flag', type=int, choices=[1, 2], help='weight initialization functions, 1: random')
+parser.add_argument('learning_rate', type=float, help='learning rate')
 
 
 def args2data(args) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray,
@@ -196,7 +187,7 @@ class Sigmoid:
     def forward(self, x: np.ndarray) -> np.ndarray:
         """
         Take sigmoid of input x.
-        :param x: Input to activation function (i.e. output of the previous 
+        :param x: Input to activation function (i.e. output of the previous
                   linear layer), with shape (output_size,)
         :return: Output of sigmoid activation function with shape
             (output_size,)
@@ -225,11 +216,11 @@ class Linear:
     def __init__(self, input_size: int, output_size: int,
                  weight_init_fn: INIT_FN_TYPE, learning_rate: float):
         """
-        :param input_size: number of units in the input of the layer 
+        :param input_size: number of units in the input of the layer
                            *not including* the folded bias
         :param output_size: number of units in the output of the layer
-        :param weight_init_fn: function that creates and initializes weight 
-                               matrices for layer. This function takes in a 
+        :param weight_init_fn: function that creates and initializes weight
+                               matrices for layer. This function takes in a
                                tuple (row, col) and returns a matrix with
                                shape row x col.
         :param learning_rate: learning rate for SGD training updates
@@ -259,7 +250,7 @@ class Linear:
         """
         :param x: Input to linear layer with shape (input_size,)
                   where input_size *does not include* the folded bias.
-                  In other words, the input does not contain the bias column 
+                  In other words, the input does not contain the bias column
                   and you will need to add it in yourself in this method.
                   Since we train on 1 example at a time, batch_size should be 1
                   at training.
@@ -279,13 +270,13 @@ class Linear:
             of linear
         :return: dx, partial derivative of loss with respect to input x
             of linear
-        
+
         Note that this function should set self.dw
             (gradient of loss with respect to weights)
             but not directly modify self.w; NN.step() is responsible for
             updating the weights.
 
-        HINT: You may want to use some of the values you previously cached in 
+        HINT: You may want to use some of the values you previously cached in
         your forward() method.
         """
         # TODO: implement
@@ -293,7 +284,7 @@ class Linear:
 
     def step(self) -> None:
         """
-        Apply SGD update to weights using self.dw, which should have been 
+        Apply SGD update to weights using self.dw, which should have been
         set in NN.backward().
         """
         # TODO: implement
@@ -311,9 +302,9 @@ class NN:
         :param hidden_size: number of units in the hidden layer of the network
         :param output_size: number of units in output of the network - this
                             should be equal to the number of classes
-        :param weight_init_fn: function that creates and initializes weight 
-                               matrices for layer. This function takes in a 
-                               tuple (row, col) and returns a matrix with 
+        :param weight_init_fn: function that creates and initializes weight
+                               matrices for layer. This function takes in a
+                               tuple (row, col) and returns a matrix with
                                shape row x col.
         :param learning_rate: learning rate for SGD training updates
         """
@@ -328,7 +319,7 @@ class NN:
 
     def forward(self, x: np.ndarray, y: int) -> Tuple[np.ndarray, float]:
         """
-        Neural network forward computation. 
+        Neural network forward computation.
         Follow the pseudocode!
         :param x: input data point *without the bias folded in*
         :param y: prediction with shape (num_classes,)
@@ -401,14 +392,14 @@ class NN:
 if __name__ == "__main__":
     args = parser.parse_args()
     # Note: You can access arguments like learning rate with args.learning_rate
-    # Generally, you can access each argument using the name that was passed 
+    # Generally, you can access each argument using the name that was passed
     # into parser.add_argument() above (see lines 24-44).
 
     # Define our labels
     labels = ["a", "e", "g", "i", "l", "n", "o", "r", "t", "u"]
 
     # Call args2data to get all data + argument values
-    # See the docstring of `args2data` for an explanation of 
+    # See the docstring of `args2data` for an explanation of
     # what is being returned.
     (X_tr, y_tr, X_test, y_test, out_tr, out_te, out_metrics,
      n_epochs, n_hid, init_flag, lr) = args2data(args)
@@ -425,7 +416,7 @@ if __name__ == "__main__":
     # (this line of code is already written for you)
     train_losses, test_losses = nn.train(X_tr, y_tr, X_test, y_test, n_epochs)
 
-    # test model and get predicted labels and errors 
+    # test model and get predicted labels and errors
     # (this line of code is written for you)
     train_labels, train_error_rate = nn.test(X_tr, y_tr)
     test_labels, test_error_rate = nn.test(X_test, y_test)
