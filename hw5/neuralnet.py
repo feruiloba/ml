@@ -118,10 +118,10 @@ def random_init(shape):
     M, D = shape
     np.random.seed(M * D)  # Don't change this line!
 
-    # TODO: create the random matrix here!
+    # create the random matrix here!
     # Hint: numpy might have some useful function for this
     # Hint: make sure you have the right distribution
-    raise NotImplementedError
+    return np.random.uniform(-0.1, 0.1, shape)
 
 
 class SoftMaxCrossEntropy:
@@ -180,9 +180,7 @@ class Sigmoid:
         """
         Initialize state for sigmoid activation layer
         """
-        # TODO Initialize any additional values you may need to store for the
-        #  backward pass here
-        raise NotImplementedError
+        # self.sigmoid_x =
 
     def forward(self, x: np.ndarray) -> np.ndarray:
         """
@@ -192,9 +190,14 @@ class Sigmoid:
         :return: Output of sigmoid activation function with shape
             (output_size,)
         """
-        # TODO: perform forward pass and save any values you may need for
+        # perform forward pass and save any values you may need for
         #  the backward pass
-        raise NotImplementedError
+
+        self.b = x
+
+        e = np.exp(x)
+
+        return e / (1 + e)
 
     def backward(self, dz: np.ndarray) -> np.ndarray:
         """
@@ -203,9 +206,11 @@ class Sigmoid:
         :return: partial derivative of loss with respect to input of
             sigmoid activation
         """
-        # TODO: implement
-        raise NotImplementedError
+        # implement
+        e_neg_b = np.exp(-self.b)
+        dy_db = e_neg_b / np.square(e_neg_b + 1)
 
+        return dz * dy_db
 
 # This refers to a function type that takes in a tuple of 2 integers (row, col)
 # and returns a numpy array (which should have the specified dimensions).
@@ -228,23 +233,23 @@ class Linear:
         # Initialize learning rate for SGD
         self.lr = learning_rate
 
-        # TODO: Initialize weight matrix for this layer - since we are
+        # Initialize weight matrix for this layer - since we are
         #  folding the bias into the weight matrix, be careful about the
         #  shape you pass in.
         #  To be consistent with the formulas you derived in the written and
         #  in order for the unit tests to work correctly,
         #  the first dimension should be the output size
-        raise NotImplementedError
+        self.w = weight_init_fn((output_size, input_size + 1))
 
-        # TODO: set the bias terms to zero
-        raise NotImplementedError
+        # set the bias terms to zero
+        self.w[:,0] = 0
 
-        # TODO: Initialize matrix to store gradient with respect to weights
-        raise NotImplementedError
+        # Initialize matrix to store gradient with respect to weights
+        self.gradient = zero_init(input_size + 1)
 
-        # TODO: Initialize any additional values you may need to store for the
+        # Initialize any additional values you may need to store for the
         #  backward pass here
-        raise NotImplementedError
+        # raise NotImplementedError
 
     def forward(self, x: np.ndarray) -> np.ndarray:
         """
@@ -260,9 +265,15 @@ class Linear:
         function. Inspect your expressions for backprop to see which values
         should be cached.
         """
-        # TODO: perform forward pass and save any values you may need for
+        # Add 1 column to input (array, index, value, axis)
+        x_bias = np.insert(x, 0, 1, axis=0)
+
+        # perform forward pass and save any values you may need for
         #  the backward pass
-        raise NotImplementedError
+        self.output = np.matmul(self.w, x_bias)
+
+        return self.output
+
 
     def backward(self, dz: np.ndarray) -> np.ndarray:
         """
@@ -280,7 +291,8 @@ class Linear:
         your forward() method.
         """
         # TODO: implement
-        raise NotImplementedError
+        self.dw = self.output
+
 
     def step(self) -> None:
         """
@@ -315,7 +327,9 @@ class NN:
 
         # TODO: initialize modules (see section 9.1.2 of the writeup)
         #  Hint: use the classes you've implemented above!
-        raise NotImplementedError
+        self.a_linear = Linear(input_size, output_size, weight_init_fn, learning_rate)
+        self.z_sigmoid = Sigmoid()
+        self.b_linear = Linear(input_size)
 
     def forward(self, x: np.ndarray, y: int) -> Tuple[np.ndarray, float]:
         """
