@@ -32,7 +32,7 @@ parser.add_argument('validation_out', type=str, help='path to store prediction o
 parser.add_argument('metrics_out', type=str, help='path to store training and testing metrics')
 parser.add_argument('num_epoch', type=int, help='number of training epochs')
 parser.add_argument('hidden_units', type=int, help='number of hidden units')
-parser.add_argument('init_flag', type=int, choices=[1, 2], help='weight initialization functions, 1: random')
+parser.add_argument('init_flag', type=int, choices=[1, 2, 3], help='weight initialization functions, 1: random, 2: zeros, 3: used for plotting')
 parser.add_argument('learning_rate', type=float, help='learning rate')
 
 
