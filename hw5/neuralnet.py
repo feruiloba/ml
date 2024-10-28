@@ -124,6 +124,13 @@ def random_init(shape):
     return np.random.uniform(-0.1, 0.1, shape)
 
 
+def int2onehot(array_size, value):
+    y_one_hot = np.zeros(array_size)
+    y_one_hot[value] = 1
+
+    return y_one_hot
+
+
 class SoftMaxCrossEntropy:
 
     def _softmax(self, z: np.ndarray) -> np.ndarray:
@@ -132,8 +139,8 @@ class SoftMaxCrossEntropy:
         :param z: input logits of shape (num_classes,)
         :return: softmax output of shape (num_classes,)
         """
-        # TODO: implement
-        raise NotImplementedError
+        # implement
+        return np.exp(z)/np.sum(np.exp(z))
 
     def _cross_entropy(self, y: int, y_hat: np.ndarray) -> float:
         """
@@ -142,8 +149,12 @@ class SoftMaxCrossEntropy:
         :param y_hat: prediction with shape (num_classes,)
         :return: cross entropy loss
         """
-        # TODO: implement
-        raise NotImplementedError
+        
+        # implement
+
+        # (Assuming class label integer starts at 1)
+        single = y_hat[y]
+        return 0 if single == 0 else - np.log(single)
 
     def forward(self, z: np.ndarray, y: int) -> Tuple[np.ndarray, float]:
         """
@@ -154,8 +165,9 @@ class SoftMaxCrossEntropy:
             y: predictions from softmax as an np.ndarray
             loss: cross entropy loss
         """
-        # TODO: Call your implementations of _softmax and _cross_entropy here
-        raise NotImplementedError
+        y_hat = self._softmax(z)
+        loss = self._cross_entropy(y, y_hat)
+        return (y_hat, loss)
 
     def backward(self, y: int, y_hat: np.ndarray) -> np.ndarray:
         """
@@ -171,8 +183,8 @@ class SoftMaxCrossEntropy:
         :param y_hat: predicted softmax probability with shape (num_classes,)
         :return: gradient with shape (num_classes,)
         """
-        # TODO: implement using the formula you derived in the written
-        raise NotImplementedError
+        # implement using the formula you derived in the written
+        return y_hat - int2onehot(y_hat.size, y)
 
 
 class Sigmoid:
@@ -193,13 +205,13 @@ class Sigmoid:
         # perform forward pass and save any values you may need for
         #  the backward pass
 
-        self.b = x
+        self.z = x
 
         e = np.exp(x)
 
         return e / (1 + e)
 
-    def backward(self, dz: np.ndarray) -> np.ndarray:
+    def backward(self, dl_dz: np.ndarray) -> np.ndarray:
         """
         :param dz: partial derivative of loss with respect to output of
             sigmoid activation
@@ -207,10 +219,10 @@ class Sigmoid:
             sigmoid activation
         """
         # implement
-        e_neg_b = np.exp(-self.b)
-        dy_db = e_neg_b / np.square(e_neg_b + 1)
+        e_neg_z = np.exp(-self.z)
+        dz_dx = e_neg_z / np.square(e_neg_z + 1)
 
-        return dz * dy_db
+        return dl_dz * dz_dx
 
 # This refers to a function type that takes in a tuple of 2 integers (row, col)
 # and returns a numpy array (which should have the specified dimensions).
@@ -239,17 +251,18 @@ class Linear:
         #  To be consistent with the formulas you derived in the written and
         #  in order for the unit tests to work correctly,
         #  the first dimension should be the output size
-        self.w = weight_init_fn((output_size, input_size + 1))
+        self.w = weight_init_fn((output_size, input_size))
 
         # set the bias terms to zero
-        self.w[:,0] = 0
+        self.w = np.insert(self.w, 0, 0, axis=1)
 
         # Initialize matrix to store gradient with respect to weights
-        self.gradient = zero_init(input_size + 1)
+        self.dw = np.zeros_like(self.w)
 
         # Initialize any additional values you may need to store for the
         #  backward pass here
-        # raise NotImplementedError
+        self.input_size = input_size
+        self.output_size = output_size
 
     def forward(self, x: np.ndarray) -> np.ndarray:
         """
@@ -265,14 +278,18 @@ class Linear:
         function. Inspect your expressions for backprop to see which values
         should be cached.
         """
+
         # Add 1 column to input (array, index, value, axis)
-        x_bias = np.insert(x, 0, 1, axis=0)
+        self.x_bias = np.insert(x, 0, 1, axis=0)
 
         # perform forward pass and save any values you may need for
         #  the backward pass
-        self.output = np.matmul(self.w, x_bias)
+        self.a = np.matmul(self.w, self.x_bias)
 
-        return self.output
+        w_shape = np.ones_like(self.w)
+        self.x_shape = w_shape * self.x_bias
+
+        return self.a
 
 
     def backward(self, dz: np.ndarray) -> np.ndarray:
@@ -290,18 +307,22 @@ class Linear:
         HINT: You may want to use some of the values you previously cached in
         your forward() method.
         """
-        # TODO: implement
-        self.dw = self.output
+        # implement
 
+        self.dw = (self.x_shape.T * dz).T
+        
+        w_no_bias = self.w[:,1:]
+        self.dx = np.matmul(dz, w_no_bias)
+
+        return self.dx
 
     def step(self) -> None:
         """
-        Apply SGD update to weights using self.dw, which should have been
+        Apply SGD update to weights using self.da_dw, which should have been
         set in NN.backward().
         """
-        # TODO: implement
-        raise NotImplementedError
-
+        # implement
+        self.w = self.w - self.lr * self.dw
 
 class NN:
     def __init__(self, input_size: int, hidden_size: int, output_size: int,
@@ -325,11 +346,12 @@ class NN:
         self.hidden_size = hidden_size
         self.output_size = output_size
 
-        # TODO: initialize modules (see section 9.1.2 of the writeup)
+        # initialize modules (see section 9.1.2 of the writeup)
         #  Hint: use the classes you've implemented above!
-        self.a_linear = Linear(input_size, output_size, weight_init_fn, learning_rate)
+        self.linear1 = Linear(input_size, hidden_size, weight_init_fn, learning_rate)
         self.z_sigmoid = Sigmoid()
-        self.b_linear = Linear(input_size)
+        self.linear2 = Linear(hidden_size, output_size, weight_init_fn, learning_rate)
+        self.y_J_softmax = SoftMaxCrossEntropy()
 
     def forward(self, x: np.ndarray, y: int) -> Tuple[np.ndarray, float]:
         """
@@ -342,8 +364,11 @@ class NN:
                 a valid probability distribution over the classes.
             loss: the cross_entropy loss for a given example
         """
-        # TODO: call forward pass for each layer
-        raise NotImplementedError
+        # call forward pass for each layer
+        a = self.linear1.forward(x)
+        z = self.z_sigmoid.forward(a)
+        b = self.linear2.forward(z)
+        return self.y_J_softmax.forward(b, y)
 
     def backward(self, y: int, y_hat: np.ndarray) -> None:
         """
@@ -352,15 +377,20 @@ class NN:
         :param y: label (a number or an array containing a single element)
         :param y_hat: prediction with shape (num_classes,)
         """
-        # TODO: call backward pass for each layer
-        raise NotImplementedError
-
+        # call backward pass for each layer
+        gJ = 1
+        gb = gJ * self.y_J_softmax.backward(y, y_hat)
+        gz = self.linear2.backward(gb)
+        ga = self.z_sigmoid.backward(gz)
+        self.linear1.backward(ga)
+        
     def step(self):
         """
         Apply SGD update to weights.
         """
-        # TODO: call step for each relevant layer
-        raise NotImplementedError
+
+        self.linear1.step()
+        self.linear2.step()
 
     def compute_loss(self, X: np.ndarray, y: np.ndarray) -> float:
         """
@@ -369,17 +399,24 @@ class NN:
         :param y: Input labels of shape (num_points,)
         :return: Mean cross entropy loss
         """
-        # TODO: compute loss over the entire dataset
+        # compute loss over the entire dataset
         #  Hint: reuse your forward function
-        raise NotImplementedError
+        
+        losses = []
+        for i in range(0, y.size):
+            (_, xi_loss) = self.forward(X[i], y[i])
+            losses.append(xi_loss)
+            
+        return np.mean(losses)
 
-    def train(self, X_tr: np.ndarray, y_tr: np.ndarray,
+
+    def train(self, X_train: np.ndarray, y_train: np.ndarray,
               X_test: np.ndarray, y_test: np.ndarray,
               n_epochs: int) -> Tuple[List[float], List[float]]:
         """
         Train the network using SGD for some epochs.
-        :param X_tr: train data
-        :param y_tr: train label
+        :param X_train: train data
+        :param y_train: train label
         :param X_test: train data
         :param y_test: train label
         :param n_epochs: number of epochs to train for
@@ -387,8 +424,23 @@ class NN:
             train_losses: Training losses *after* each training epoch
             test_losses: Test losses *after* each training epoch
         """
-        # TODO: train network
-        raise NotImplementedError
+        # train network
+        
+        train_losses = np.zeros(n_epochs)
+        test_losses = np.zeros(n_epochs)
+
+        for epoch in range(0, n_epochs):
+            X_train_shuffled, y_train_shuffled = shuffle(X_train, y_train, epoch)
+
+            for i in range(0, y_train.size):
+                (y_hat, _) = self.forward(X_train_shuffled[i], y_train_shuffled[i])
+                self.backward(y_train_shuffled[i], y_hat)
+                self.step()
+
+            train_losses[epoch] = self.compute_loss(X_train_shuffled, y_train_shuffled)
+            test_losses[epoch] = self.compute_loss(X_test, y_test)
+
+        return (train_losses, test_losses)
 
     def test(self, X: np.ndarray, y: np.ndarray) -> Tuple[np.ndarray, float]:
         """
@@ -399,8 +451,20 @@ class NN:
             labels: predicted labels
             error_rate: prediction error rate
         """
-        # TODO: make predictions and compute error
-        raise NotImplementedError
+        # make predictions and compute error
+        
+        predicted_labels = []
+        error_count = 0
+        for i in range(0, y.size):
+            (y_hat, _) = self.forward(X[i], y[i])
+            label = np.argmax(y_hat)
+            
+            predicted_labels.insert(i, label)
+
+            if (label != y[i]):
+                error_count += 1
+            
+        return (predicted_labels, error_count / y.size)
 
 
 if __name__ == "__main__":

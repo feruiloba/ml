@@ -45,3 +45,11 @@ python decision_tree.py heart_train.tsv heart_test.tsv 2 heart_2_train.txt heart
 python feature.py smalldata/train_small.tsv smalldata/val_small.tsv smalldata/test_small.tsv glove_embeddings.txt formatted_train_small.tsv formatted_val_small.tsv formatted_test_small.tsv
 python lr.py formatted_train_small.tsv formatted_val_small.tsv formatted_test_small.tsv train_labels_out_small.txt test_labels_out_small.txt metrics_small.txt 500 0.1
 ```
+
+## HW5
+
+```
+python neuralnet.py small_train.csv small_validation.csv  small_train_out.labels small_validation_out.labels  small_metrics_out.txt 2 4 2 0.1
+```
+
+Also added .vscode settings to be able to debug and set breakpoints as well as test with VS Code extensions
