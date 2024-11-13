@@ -39,9 +39,9 @@ class RNNCell(nn.Module):
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
 
-        # TODO: Initialize weights 
-        self.i2h = ...
-        self.h2h = ...
+        # TODO: Initialize weights
+        self.i2h = nn.Linear(input_dim, hidden_dim)
+        self.h2h = nn.Linear(hidden_dim, hidden_dim)
 
         # See here for PyTorch activation functions
         # https://pytorch.org/docs/stable/nn.html#non-linear-activations-weighted-sum-nonlinearity
@@ -63,7 +63,7 @@ class RNNCell(nn.Module):
         out = ...
 
         return out
-    
+
 
 class RNN(nn.Module):
     def __init__(
@@ -102,13 +102,13 @@ class RNN(nn.Module):
             Tensor: RNN hidden state at current timestep t
                 - shape: (batch_size, hidden_dim,)
             Tensor: RNN output at current timestep t.
-                RNN output state at current timestep t 
+                RNN output state at current timestep t
                 - shape: (batch_size, hidden_dim,)
         """
         if hidden_prev is None:
             # If this is the first timestep and there is no previous hidden state,
             # create a dummy hidden state of all zeros
-            
+
             # TODO: Fill this in (After you intialize, make sure you add .to(input))
             last_hidden_state = ...
         else:
@@ -140,7 +140,7 @@ class RNN(nn.Module):
         b, t, _ = sequence.shape
 
         for i in range(t):
-            # TODO: Extract the current input 
+            # TODO: Extract the current input
             inp = ...
 
             # TODO: Call step() to get the next hidden/output states
@@ -154,7 +154,7 @@ class RNN(nn.Module):
                 hidden_states = ...
 
             # TODO: Append the next output state to the list
-            
+
 
         # TODO: torch.stack all of the output states over the timestep dim
         output_states = ...
@@ -219,9 +219,9 @@ class SelfAttention(nn.Module):
 
         # Apply output projection back to hidden dimension
         output_state = self.output_transform(output_state).squeeze(1)
-        
+
         return output_state
-    
+
 
     def forward(self, y_all) -> Tensor:
         """
@@ -243,7 +243,7 @@ class SelfAttention(nn.Module):
             # Then add it to the output states
 			# HINT: use self.step()
             output_state = ...
-            
+
         # TODO: torch.cat() all of the outputs in the list
         # across the sequence length dimension (t)
         output_states = ...
@@ -372,8 +372,8 @@ class RNNLanguageModel(nn.Module):
             attn_inputs = torch.cat(
                 [attn_inputs, next_attn_input.unsqueeze(1)], dim=1
             )
-            
-            # Call attention 
+
+            # Call attention
             next_output_state = self.attention.step(attn_inputs)
 
             # Generate the token to be used in the next step of generation
@@ -417,7 +417,7 @@ def train(lm, train_data, valid_data, loss_fn, optimizer, num_sequences, batch_s
     val_index = int(num_sequences * val_frequency) // batch_size
     if val_index == 0:
         val_index = 1
-      
+
     # Loop over the dataset
     for idx, sequence in enumerate(dataset):
         time_elapsed = round((time.time() - start_time) / 60, 6)
@@ -438,14 +438,14 @@ def train(lm, train_data, valid_data, loss_fn, optimizer, num_sequences, batch_s
 
         # TODO: Compute next-token classification loss
 
-        # Hint 1: The Token logits should be of shape (batch_size, t, vocab_size), 
-        # and the sequence should be of shape (batch_size, t). 
-        # If we want to compute the loss of the nth logit token, 
+        # Hint 1: The Token logits should be of shape (batch_size, t, vocab_size),
+        # and the sequence should be of shape (batch_size, t).
+        # If we want to compute the loss of the nth logit token,
         # which token in the sequence should I compare it with?
 
-        # Hint 2: We will need to permute the token_logits to the 
+        # Hint 2: We will need to permute the token_logits to the
         # correct shape before passing into loss function
-        
+
         loss = ...
 
 
@@ -502,7 +502,7 @@ def validate(lm, dataset, loss_fn):
     mean_loss = 0.0
     num_batches = 1
 
-    for i, sequence in enumerate(dataset):        
+    for i, sequence in enumerate(dataset):
         if i < num_batches:
             # Move the sequence to the device
             sequence = sequence.to(device)
@@ -538,7 +538,7 @@ def complete(prefix: str, num_tokens=64, temperature=0.0):
     input = tokenizer.encode(prefix, add_special_tokens=False, return_tensors="pt")
     input = input.to(device)
     output = lm.generate(input, max_tokens=num_tokens, temperature=temperature)
-    
+
     return tokenizer.decode(output)
 
 
@@ -574,7 +574,7 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained("my_tokenizer")
     vocab_size = tokenizer.vocab_size
 
-    # Initialize LM 
+    # Initialize LM
     lm = RNNLanguageModel(
         embed_dim=args.embed_dim,
         hidden_dim=args.hidden_dim,
@@ -650,7 +650,7 @@ if __name__ == "__main__":
     # Example code for generating text with your LM
 
     test_str = ["Once upon a time there was a"]
-    
+
     for ts in test_str:
         completion = complete(ts, num_tokens=64, temperature=0.3)
         print("  Test prefix:", ts)
