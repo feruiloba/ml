@@ -39,7 +39,7 @@ class RNNCell(nn.Module):
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
 
-        # TODO: Initialize weights
+        # Initialize weights
         self.i2h = nn.Linear(input_dim, hidden_dim)
         self.h2h = nn.Linear(hidden_dim, hidden_dim)
 
@@ -59,8 +59,8 @@ class RNNCell(nn.Module):
             Tensor: Next hidden state at timestep t
                 - shape: (batch_size, hidden_dim)
         """
-        # TODO: fill this in
-        out = ...
+        # fill this in
+        out = self.activation(self.i2h(input) + self.h2h(hidden_state))
 
         return out
 
@@ -80,10 +80,10 @@ class RNN(nn.Module):
         self.hidden_dim = hidden_dim
 
         # TODO: Initialie the RNNCell Class
-        self.cell = ...
+        self.cell = RNNCell(input_dim, hidden_dim)
 
         # TODO: Initialize the weights
-        self.h2o = ...
+        self.out = nn.Linear(hidden_dim, hidden_dim)
 
     def step(self, input: Tensor, hidden_prev: Optional[Tensor] = None) -> Tensor:
         """
@@ -109,15 +109,15 @@ class RNN(nn.Module):
             # If this is the first timestep and there is no previous hidden state,
             # create a dummy hidden state of all zeros
 
-            # TODO: Fill this in (After you intialize, make sure you add .to(input))
-            last_hidden_state = ...
+            # Fill this in (After you intialize, make sure you add .to(input))
+            last_hidden_state = torch.zeros(input.shape).to(input)
         else:
-            # TODO: fill this in
-            last_hidden_state = ...
+            # fill this in
+            last_hidden_state = hidden_prev
 
         # Call the RNN cell and apply the transform to get a prediction
-        next_hidden_state = ...
-        next_output_state = self.h2o(next_hidden_state)
+        next_hidden_state = self.cell.forward(input, last_hidden_state)
+        next_output_state = self.out(next_hidden_state)
 
         return next_hidden_state, next_output_state
 
@@ -141,23 +141,23 @@ class RNN(nn.Module):
 
         for i in range(t):
             # TODO: Extract the current input
-            inp = ...
+            inp = sequence[i]
 
             # TODO: Call step() to get the next hidden/output states
-            next_hidden_state, next_output_state = ...
+            next_hidden_state, next_output_state = self.step(inp, hidden_states)
             next_hidden_state = next_hidden_state.unsqueeze(1)
 
             # TODO: Concatenate the newest hidden state to to all previous ones
             if hidden_states is None:
-                hidden_states = ...
+                hidden_states = next_hidden_state
             else:
-                hidden_states = ...
+                hidden_states = torch.cat(hidden_states, next_hidden_state)
 
             # TODO: Append the next output state to the list
-
+            output_states.append(next_output_state)
 
         # TODO: torch.stack all of the output states over the timestep dim
-        output_states = ...
+        output_states = torch.stack(output_states)
 
         return hidden_states, output_states
 
@@ -178,9 +178,9 @@ class SelfAttention(nn.Module):
         self.value_dim = value_dim
 
         # TODO: Initialize Query, Key, and Value transformations
-        self.query_transform = ...
-        self.key_transform = ...
-        self.value_transform = ...
+        self.query_transform = nn.Linear(hidden_dim, key_dim)
+        self.key_transform = nn.Linear(hidden_dim, key_dim)
+        self.value_transform = nn.Linear(hidden_dim, value_dim)
 
         # Output projection within the Attention Layer (NOT the LM head)
         self.output_transform = nn.Linear(value_dim, hidden_dim)
@@ -199,10 +199,10 @@ class SelfAttention(nn.Module):
         """
         last_hidden_state = y_all[:, -1].unsqueeze(1)
 
-        # TODO: Compute the QKV values
-        query = ...
-        keys = ...
-        values = ...
+        # Compute the QKV values
+        query = self.query_transform(last_hidden_state)
+        keys = self.key_transform(last_hidden_state)
+        values = self.value_transform(last_hidden_state)
 
 
         scaling = self.key_dim ** (0.5)
@@ -212,10 +212,11 @@ class SelfAttention(nn.Module):
         # Remember to divide raw attention scores by scaling factor
         # These scores should then be normalized using softmax
         # Hint: use torch.softmax
-        weights = ...
+        s = torch.matmul(keys, query)
+        weights = torch.softmax(s)
 
         # TODO: Compute weighted sum of values based on attention weights
-        output_state = ...
+        output_state = torch.matmul(weights, values)
 
         # Apply output projection back to hidden dimension
         output_state = self.output_transform(output_state).squeeze(1)
@@ -242,11 +243,13 @@ class SelfAttention(nn.Module):
             # TODO: Perform a step of SelfAttention and unsqueeze the result,
             # Then add it to the output states
 			# HINT: use self.step()
-            output_state = ...
+            attention_output = self.step(y_all)
+            output_state = attention_output.unsqueeze(1)
+            output_states.append(output_state)
 
-        # TODO: torch.cat() all of the outputs in the list
+        # torch.cat() all of the outputs in the list
         # across the sequence length dimension (t)
-        output_states = ...
+        output_states = torch.cat(output_states)
 
         return output_states
 
