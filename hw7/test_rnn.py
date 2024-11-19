@@ -1,38 +1,19 @@
+import unittest
 from rnn import *
 import torch
 from torch import nn
 
 
-def run_tests():
-    # RNNCell tests
-    test_rnn_cell1()
-    test_rnn_cell2()
-    # RNN tests
-    test_rnn1()
-    test_rnn2()
-    # SelfAttention tests
-    test_attention1()
-    test_attention2()
-
-
-# RNNCell Tests
-def test_rnn_cell1():
-    print("Testing RNNCell Test Case 1...", end="")
-    input_dim = 256
-    hidden_dim = 128
-    batch_size = 1
-    perform_rnn_cell_test(input_dim, hidden_dim, batch_size)
-    print("Passed")
-
-
-def test_rnn_cell2():
-    print("Testing RNNCell Test Case 2...", end="")
-    input_dim = 128
-    hidden_dim = 64
-    batch_size = 2
-    perform_rnn_cell_test(input_dim, hidden_dim, batch_size)
-    print("Passed")
-
+# def run_tests():
+#     # RNNCell tests
+#     test_rnn_cell1()
+#     test_rnn_cell2()
+#     # RNN tests
+#     test_rnn1()
+#     test_rnn2()
+#     # SelfAttention tests
+#     test_attention1()
+#     test_attention2()
 
 def perform_rnn_cell_test(input_dim, hidden_dim, batch_size):
     my_cell = RNNCell(input_dim, hidden_dim)
@@ -52,27 +33,29 @@ def perform_rnn_cell_test(input_dim, hidden_dim, batch_size):
 
     assert torch.allclose(my_out, out, atol=1e-5), "Outputs are not close"
 
+# RNNCell Tests
 
-# RNN Tests
-def test_rnn1():
-    print("Testing RNN Test Case 1...", end="")
-    input_size = 256
-    hidden_size = 128
-    batch_size = 2
-    seq_len = 5
-    perform_rnn_test(input_size, hidden_size, batch_size, seq_len)
-    print("Passed")
+class TestRNNCell(unittest.TestCase):
+
+    def test_rnn_cell1(self):
+        print("Testing RNNCell Test Case 1...", end="")
+        input_dim = 256
+        hidden_dim = 128
+        batch_size = 1
+        perform_rnn_cell_test(input_dim, hidden_dim, batch_size)
+        print("Passed")
 
 
-def test_rnn2():
-    print("Testing RNN Test Case 2...", end="")
-    input_size = 128
-    hidden_size = 64
-    batch_size = 3
-    seq_len = 10
-    perform_rnn_test(input_size, hidden_size, batch_size, seq_len)
-    print("Passed")
+    def test_rnn_cell2(self):
+        print("Testing RNNCell Test Case 2...", end="")
+        input_dim = 128
+        hidden_dim = 64
+        batch_size = 2
+        perform_rnn_cell_test(input_dim, hidden_dim, batch_size)
+        print("Passed")
 
+
+    # RNN Tests
 
 def perform_rnn_test(input_size, hidden_size, batch_size, seq_len):
     num_layers = 1
@@ -117,89 +100,110 @@ def perform_rnn_test(input_size, hidden_size, batch_size, seq_len):
     ), "Output states are not close"
 
 
-# SelfAttention Tests
-def test_attention1():
-    print("Testing SelfAttention Test Case 1...", end="")
-    embed_dim = 256
-    kdim = (
-        embed_dim  # Pytorch doesn't like giving us the q bias if the dims are not equal
-    )
-    vdim = embed_dim
-    batch_size = 1
-    seq_len = 5
-    perform_attention_test(embed_dim, kdim, vdim, batch_size, seq_len)
-    print("Passed")
+class TestRNN(unittest.TestCase):
+    def test_rnn1(self):
+        print("Testing RNN Test Case 1...", end="")
+        input_size = 256
+        hidden_size = 128
+        batch_size = 2
+        seq_len = 5
+        perform_rnn_test(input_size, hidden_size, batch_size, seq_len)
+        print("Passed")
 
 
-def test_attention2():
-    print("Testing SelfAttention Test Case 2...", end="")
-    embed_dim = 128
-    kdim = embed_dim
-    vdim = embed_dim
-    batch_size = 2
-    seq_len = 10
-    perform_attention_test(embed_dim, kdim, vdim, batch_size, seq_len)
-    print("Passed")
-
+    def test_rnn2(self):
+        print("Testing RNN Test Case 2...", end="")
+        input_size = 128
+        hidden_size = 64
+        batch_size = 3
+        seq_len = 10
+        perform_rnn_test(input_size, hidden_size, batch_size, seq_len)
+        print("Passed")
 
 def perform_attention_test(embed_dim, kdim, vdim, batch_size, seq_len):
-    num_heads = 1
-    dropout = 0.0
-    bias = True
+        num_heads = 1
+        dropout = 0.0
+        bias = True
 
-    attention = nn.MultiheadAttention(
-        embed_dim,
-        num_heads,
-        dropout,
-        bias=bias,
-        kdim=kdim,
-        vdim=vdim,
-    )
+        attention = nn.MultiheadAttention(
+            embed_dim,
+            num_heads,
+            dropout,
+            bias=bias,
+            kdim=kdim,
+            vdim=vdim,
+        )
 
-    my_attention = SelfAttention(embed_dim, kdim, vdim)
+        my_attention = SelfAttention(embed_dim, kdim, vdim)
 
-    in_proj_weight = attention.in_proj_weight
-    in_proj_bias = attention.in_proj_bias
+        in_proj_weight = attention.in_proj_weight
+        in_proj_bias = attention.in_proj_bias
 
-    q_weight = in_proj_weight[:embed_dim, :]
-    k_weight = in_proj_weight[embed_dim : embed_dim + kdim, :]
-    v_weight = in_proj_weight[embed_dim + kdim :, :]
+        q_weight = in_proj_weight[:embed_dim, :]
+        k_weight = in_proj_weight[embed_dim : embed_dim + kdim, :]
+        v_weight = in_proj_weight[embed_dim + kdim :, :]
 
-    q_bias = in_proj_bias[:embed_dim]
-    k_bias = in_proj_bias[embed_dim : embed_dim + kdim]
-    v_bias = in_proj_bias[embed_dim + kdim :]
+        q_bias = in_proj_bias[:embed_dim]
+        k_bias = in_proj_bias[embed_dim : embed_dim + kdim]
+        v_bias = in_proj_bias[embed_dim + kdim :]
 
-    my_attention.query_transform.weight.data.copy_(q_weight.data)
-    my_attention.key_transform.weight.data.copy_(k_weight.data)
-    my_attention.value_transform.weight.data.copy_(v_weight.data)
+        my_attention.query_transform.weight.data.copy_(q_weight.data)
+        my_attention.key_transform.weight.data.copy_(k_weight.data)
+        my_attention.value_transform.weight.data.copy_(v_weight.data)
 
-    if q_bias is not None:
-        my_attention.query_transform.bias.data.copy_(q_bias.data)
-    if k_bias is not None:
-        my_attention.key_transform.bias.data.copy_(k_bias.data)
-    if v_bias is not None:
-        my_attention.value_transform.bias.data.copy_(v_bias.data)
+        if q_bias is not None:
+            my_attention.query_transform.bias.data.copy_(q_bias.data)
+        if k_bias is not None:
+            my_attention.key_transform.bias.data.copy_(k_bias.data)
+        if v_bias is not None:
+            my_attention.value_transform.bias.data.copy_(v_bias.data)
 
-    my_attention.output_transform.weight.data.copy_(attention.out_proj.weight.data)
-    my_attention.output_transform.bias.data.copy_(attention.out_proj.bias.data)
+        my_attention.output_transform.weight.data.copy_(attention.out_proj.weight.data)
+        my_attention.output_transform.bias.data.copy_(attention.out_proj.bias.data)
 
-    sequence = torch.rand(batch_size, seq_len, embed_dim)
+        sequence = torch.rand(batch_size, seq_len, embed_dim)
 
-    t = seq_len - 1
-    y_all = sequence[:, : t + 1, :]
+        t = seq_len - 1
+        y_all = sequence[:, : t + 1, :]
 
-    query = sequence[:, t, :].unsqueeze(0)
-    key = sequence[:, : t + 1, :].transpose(0, 1)
-    value = sequence[:, : t + 1, :].transpose(0, 1)
+        query = sequence[:, t, :].unsqueeze(0)
+        key = sequence[:, : t + 1, :].transpose(0, 1)
+        value = sequence[:, : t + 1, :].transpose(0, 1)
 
-    my_output_state = my_attention.step(y_all)
+        my_output_state = my_attention.step(y_all)
 
-    attn_output, _ = attention(query, key, value)
-    attn_output = attn_output.squeeze(0)
+        attn_output, _ = attention(query, key, value)
+        attn_output = attn_output.squeeze(0)
 
-    assert torch.allclose(
-        my_output_state, attn_output, atol=1e-5
-    ), "Outputs are not close"
+        assert torch.allclose(
+            my_output_state, attn_output, atol=1e-5
+        ), "Outputs are not close"
 
 
-run_tests()
+    # SelfAttention Tests
+class TestSelfAttention(unittest.TestCase):
+    def test_attention1(self):
+        print("Testing SelfAttention Test Case 1...", end="")
+        embed_dim = 256
+        kdim = (
+            embed_dim  # Pytorch doesn't like giving us the q bias if the dims are not equal
+        )
+        vdim = embed_dim
+        batch_size = 1
+        seq_len = 5
+        perform_attention_test(embed_dim, kdim, vdim, batch_size, seq_len)
+        print("Passed")
+
+
+    def test_attention2(self):
+        print("Testing SelfAttention Test Case 2...", end="")
+        embed_dim = 128
+        kdim = embed_dim
+        vdim = embed_dim
+        batch_size = 2
+        seq_len = 10
+        perform_attention_test(embed_dim, kdim, vdim, batch_size, seq_len)
+        print("Passed")
+
+
+#run_tests()

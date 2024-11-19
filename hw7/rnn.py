@@ -110,7 +110,8 @@ class RNN(nn.Module):
             # create a dummy hidden state of all zeros
 
             # Fill this in (After you intialize, make sure you add .to(input))
-            last_hidden_state = torch.zeros(input.shape).to(input)
+            batch_size = input.shape[0]
+            last_hidden_state = torch.zeros((batch_size, self.hidden_dim)).to(input)
         else:
             # fill this in
             last_hidden_state = hidden_prev
@@ -136,28 +137,30 @@ class RNN(nn.Module):
                 - shape (batch_size, t, hidden_dim)
         """
         hidden_states = None
+        last_hidden_state = None
         output_states = []
         b, t, _ = sequence.shape
 
         for i in range(t):
-            # TODO: Extract the current input
-            inp = sequence[i]
+            # Extract the current input
+            inp = sequence[:,i,:]
 
-            # TODO: Call step() to get the next hidden/output states
-            next_hidden_state, next_output_state = self.step(inp, hidden_states)
+            # Call step() to get the next hidden/output states
+            next_hidden_state, next_output_state = self.step(inp, last_hidden_state)
+            last_hidden_state = next_hidden_state
             next_hidden_state = next_hidden_state.unsqueeze(1)
 
-            # TODO: Concatenate the newest hidden state to to all previous ones
+            # Concatenate the newest hidden state to to all previous ones
             if hidden_states is None:
                 hidden_states = next_hidden_state
             else:
-                hidden_states = torch.cat(hidden_states, next_hidden_state)
+                hidden_states = torch.concat((hidden_states,next_hidden_state), dim=1)
 
-            # TODO: Append the next output state to the list
+            # Append the next output state to the list
             output_states.append(next_output_state)
 
-        # TODO: torch.stack all of the output states over the timestep dim
-        output_states = torch.stack(output_states)
+        # torch.stack all of the output states over the timestep dim
+        output_states = torch.stack(output_states, dim=1)
 
         return hidden_states, output_states
 
@@ -200,9 +203,10 @@ class SelfAttention(nn.Module):
         last_hidden_state = y_all[:, -1].unsqueeze(1)
 
         # Compute the QKV values
+        # last_x_j = last_hidden_state[:,-1,:]
         query = self.query_transform(last_hidden_state)
-        keys = self.key_transform(last_hidden_state)
-        values = self.value_transform(last_hidden_state)
+        keys = self.key_transform(y_all)
+        values = self.value_transform(y_all)
 
 
         scaling = self.key_dim ** (0.5)
@@ -212,17 +216,20 @@ class SelfAttention(nn.Module):
         # Remember to divide raw attention scores by scaling factor
         # These scores should then be normalized using softmax
         # Hint: use torch.softmax
-        s = torch.matmul(keys, query)
-        weights = torch.softmax(s)
+        s = torch.sum(keys * query, dim=2)
+        weights = torch.softmax(s, dim=1)
 
         # TODO: Compute weighted sum of values based on attention weights
-        output_state = torch.matmul(weights, values)
+        output_state = []
+        for i in range(0, y_all.shape[0]):
+            output_state.append(torch.matmul(weights[i], values[i]))
+
+        output_state = torch.stack(output_state, dim=0)
 
         # Apply output projection back to hidden dimension
-        output_state = self.output_transform(output_state).squeeze(1)
+        output_state = self.output_transform(output_state)
 
         return output_state
-
 
     def forward(self, y_all) -> Tensor:
         """
@@ -243,13 +250,13 @@ class SelfAttention(nn.Module):
             # TODO: Perform a step of SelfAttention and unsqueeze the result,
             # Then add it to the output states
 			# HINT: use self.step()
-            attention_output = self.step(y_all)
+            attention_output = self.step(y_all[:, :i+1, :])
             output_state = attention_output.unsqueeze(1)
             output_states.append(output_state)
 
         # torch.cat() all of the outputs in the list
         # across the sequence length dimension (t)
-        output_states = torch.cat(output_states)
+        output_states = torch.cat(output_states, dim=1)
 
         return output_states
 
@@ -270,16 +277,18 @@ class RNNLanguageModel(nn.Module):
         super(RNNLanguageModel, self).__init__()
 
         # TODO: Initialize word embeddings (HINT: use nn.Embedding)
-        self.embeddings = ...
+        self.vocab_size = vocab_size
+        self.embeddings = nn.Embedding(vocab_size, embed_dim)
 
         # TODO: RNN backbone
-        self.rnn = ...
+        self.hidden_dim = hidden_dim
+        self.rnn = RNN(embed_dim, hidden_dim)
 
         # TODO: Self Attention Layer
-        self.attention = ...
+        self.attention = SelfAttention(hidden_dim, key_dim, value_dim)
 
         # TODO: Final projection from RNN output state to next token logits
-        self.lm_head = ...
+        self.lm_head = nn.Linear(self.rnn.out.out_features, vocab_size)
 
     def forward(self, tokens: Tensor) -> Tensor:
         """
@@ -297,9 +306,16 @@ class RNNLanguageModel(nn.Module):
             Tensor: RNN output states for each token
                 - shape (batch_size, t, hidden_dim)
         """
+
         # TODO: Apply embeddings, rnns, and lm_head sequentially
 
-        raise NotImplementedError
+        embeddings = self.embeddings(tokens)
+        hidden_states, output_states = self.rnn.forward(embeddings)
+        output_states_attn = self.attention.forward(output_states)
+        next_token_logits = self.lm_head.forward(output_states_attn)
+
+        return (next_token_logits, hidden_states, output_states)
+
 
     def select_token(self, token_logits: Tensor, temperature: float) -> int:
         """
@@ -433,10 +449,10 @@ def train(lm, train_data, valid_data, loss_fn, optimizer, num_sequences, batch_s
             break
 
         # TODO: Zero gradients
-
+        optimizer.zero_grad()
 
         # TODO: Forward pass through model
-        token_logits, hidden_states, attn_inputs = ...
+        token_logits, hidden_states, attn_inputs = lm.forward(sequence)
 
 
         # TODO: Compute next-token classification loss
@@ -448,18 +464,18 @@ def train(lm, train_data, valid_data, loss_fn, optimizer, num_sequences, batch_s
 
         # Hint 2: We will need to permute the token_logits to the
         # correct shape before passing into loss function
-
-        loss = ...
+        permuted_logits = torch.permute(token_logits[:,:-1,:], (0,2,1))
+        loss = loss_fn(permuted_logits, sequence[:,1:])
 
 
         # TODO: Backward pass through model
-
+        loss.backward()
 
         # DO NOT change this - clip gradient norm to avoid exploding gradients
         nn.utils.clip_grad_norm_(lm.parameters(), max_grad_norm)
 
         # TODO: Update weights
-
+        optimizer.step()
 
         # DO NOT change any of the code below
         train_batch_loss += loss.detach().cpu().item()
@@ -511,10 +527,11 @@ def validate(lm, dataset, loss_fn):
             sequence = sequence.to(device)
 
             # TODO: Perform forward pass through the model
-            token_dists, _, _ = ...
+            token_dists, _, _ = lm.forward(sequence)
 
             # TODO: Compute loss (Same as in train)
-            loss = ...
+            permuted_logits = torch.permute(token_dists[:,:-1,:], (0,2,1))
+            loss = loss_fn(permuted_logits, sequence[:,1:])
 
             # DO NOT change this line
             mean_loss += loss.detach().cpu().item()

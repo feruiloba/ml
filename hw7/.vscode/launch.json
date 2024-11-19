@@ -1,0 +1,28 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "--train_data", "data/tiny_train_stories.json",
+                "--val_data", "data/tiny_valid_stories.json",
+                "--metrics_out", "metrics.txt",
+                "--train_losses_out", "train_losses.txt",
+                "--val_losses_out", "val_losses.txt",
+                "--embed_dim", "64",
+                "--hidden_dim", "128",
+                "--dk", "32",
+                "--dv", "32",
+                "--num_sequences", "128",
+                "--batch_size", "1"
+            ]
+        }
+    ]
+}
