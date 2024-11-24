@@ -53,3 +53,11 @@ python neuralnet.py small_train.csv small_validation.csv  small_train_out.labels
 ```
 
 Also added .vscode settings to be able to debug and set breakpoints as well as test with VS Code extensions
+
+## HW 7
+
+```
+python rnn.py --train_data data/tiny_train_stories.json --val_data data/tiny_valid_stories.json --metrics_out metrics.txt --train_losses_out train_losses.txt --val_losses_out val_losses.txt --embed_dim 64 --hidden_dim 128 --dk 32 --dv 32 --num_sequences 128 --batch_size 1
+```
+
+Also added .vscode settings to be able to debug and set breakpoints as well as test with VS Code extensions
