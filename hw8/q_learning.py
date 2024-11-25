@@ -146,7 +146,9 @@ class ExperienceReplay:
         Parameters:
             buffer_size (int) : Maximum size of the replay buffer
         '''
-        # TODO: initialize the replay buffer with the correct size (Hint: use a deque)
+        # initialize the replay buffer with the correct size (Hint: use a deque)
+        self.max_buffer_size = buffer_size
+        self.replay_buffer = deque(maxlen=buffer_size)
         
     
     def add(self, state, action, reward, next_state):
@@ -158,8 +160,8 @@ class ExperienceReplay:
             reward             (int): Reward received from taking the action from the current state
             next_state  (np.ndarray): Next state encoded as vector with shape (state_space,).
         '''
-        # TODO: append the experience to the replay buffer
-        raise NotImplementedError
+        # append the experience to the replay buffer
+        self.replay_buffer.append(Tuple(state, action, reward, next_state))
     
     def sample(self, batch_size):
         '''
@@ -171,14 +173,19 @@ class ExperienceReplay:
             Return array of experiences
         '''
 
-        # TODO: return a randomly sampled batch of experiences, only if there
+        # return a randomly sampled batch of experiences, only if there
         #       are enough experiences in the buffer
-        raise NotImplementedError
+        sample = []
+        current_buffer_size = len(self.replay_buffer)
+        if (current_buffer_size > self.max_buffer_size):
+            sample_indices = np.random.randint(0, current_buffer_size, batch_size)
+            sample = self.replay_buffer[sample_indices]
+
+        return sample
     
 
 @round_output(5) # DON'T DELETE THIS LINE
-def Q(W: np.ndarray, state: np.ndarray, 
-      action: Optional[int] = None) -> Union[float, np.ndarray]:
+def Q(W: np.ndarray, state: np.ndarray,  action: Optional[int] = None) -> Union[float, np.ndarray]:
     '''
     Helper function to compute Q-values for function-approximation 
     Q-learning.
@@ -199,9 +206,11 @@ def Q(W: np.ndarray, state: np.ndarray,
         Otherwise, returns array of Q-values for all actions from state,
         [Q(state, a_0), Q(state, a_1), Q(state, a_2)...] for all a_i.
     '''
-    # TODO: Implement this!
-    raise NotImplementedError
-    return 0.0
+    
+    if (action != None):
+        return W[action] @ state
+    
+    return W @ state
 
 
 if __name__ == "__main__":
@@ -214,41 +223,84 @@ if __name__ == "__main__":
 
     # Create environment
     if env_type == "mc":
-        env = None # TODO: Replace me!
+        env = MountainCar(mode, True)
     elif env_type == "gw":
-        env = None # TODO: Replace me!
+        env = GridWorld(mode, False)
     else: 
         raise Exception(f"Invalid environment type {env_type}")
+    
+    # Replay Buffer
+    replay_buffer = ExperienceReplay(buffer_size)
 
-    # TODO: Initialize your weight matrix. Remember to fold in a bias!
-    # W = ...
+    # Total rewards
+    total_rewards = []
+
+    # Initialize your weight matrix. Remember to fold in a bias!
+    W = np.zeros((env.action_space, env.state_space + 1))
 
     for episode in range(episodes):
+        rewards = 0
 
-        # TODO: Get the initial state by calling env.reset()
+        #: Get the initial state by calling env.reset()
+        initial_state = env.reset()
+        bias_ones = np.ones(1) if initial_state.ndim == 1 else np.ones(batch_size)
+        state = np.hstack((bias_ones, initial_state))
+        q_value = Q(W, state)
 
         for iteration in range(max_iterations):
 
-            # TODO: Select an action based on the state via the epsilon-greedy 
-            #       strategy.
+            # Select an action based on the state via the epsilon-greedy 
+            # strategy.
+            action = np.argmax(q_value, axis=0)
+            if epsilon != 0:
+                action = action if np.random.uniform(0, 1) <= epsilon else np.random.randint(0, env.action_space - 1)
 
-            # TODO: Take a step in the environment with this action, and get the 
-            #       returned next state, reward, and done flag.
+            # Take a step in the environment with this action, and get the 
+            # returned next state, reward, and done flag.
+            (next_state, reward, done) = env.step(action)
+            rewards += reward
 
-            # TODO: If experience replay is disabled, use the original state,the
-            #       action, the next state, and the reward to update the 
-            #       parameters. Don't forget to update the bias term!
-            #       If experience replay is enabled, sample experiences from the
-            #       replay buffer to perform the update instead!
-            if (replay_enabled == 1):
-                pass
-            else:
-                pass
-
-            # TODO: Remember to break out of this inner loop if the environment 
-            #       signals done!
+            # If experience replay is disabled, use the original state,the
+            # action, the next state, and the reward to update the 
+            # parameters. Don't forget to update the bias term!
+            # If experience replay is enabled, sample experiences from the
+            # replay buffer to perform the update instead!
             
-            pass
+            training_samples = [(state, action, reward, next_state)]
+            if (replay_enabled == 1):
+                replay_buffer.add(state, action, reward, next_state)
+                training_samples = replay_buffer.sample(batch_size)
+
+            q_value_next = None
+            sample_next_state = None
+            for (sample_state, sample_action, sample_reward, sample_next_state) in training_samples:
+                
+                q_value_sample = Q(W, sample_state)
+                action_sample = np.argmax(q_value_sample, axis=0)
+                q_value_sample_action = Q(W, sample_state, action_sample)
+
+                sample_next_state = np.hstack((bias_ones, sample_next_state))
+                q_value_sample_next = Q(W, sample_next_state)
+                action_sample_next = np.argmax(q_value_sample_next, axis=0)
+                q_value_sample_action_next = Q(W, sample_next_state, action_sample_next)
+                y = reward + (gamma * np.max(q_value_sample_action_next))
+
+                dW = np.zeros_like(W)
+                dW[action] = state
+
+                W = W - lr * (q_value_sample_action - y) * dW
+            
+            q_value = q_value_sample_next
+            state = sample_next_state
+
+            # Remember to break out of this inner loop if the environment 
+            # signals done!
+
+            if (done):
+                break;
+            
+        total_rewards.append(rewards)
     
-    # TODO: Save your weights and returns. The reference solution uses 
-    # np.savetxt(..., fmt="%.18e", delimiter=" ")
+    # Save your weights and returns. The reference solution uses 
+    np.savetxt(weight_out, W, fmt="%.18e", delimiter=" ")
+    np.savetxt(returns_out, total_rewards, fmt="%.18e", delimiter=" ")
