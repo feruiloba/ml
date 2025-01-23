@@ -11,18 +11,18 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "args": [
-                "gw",
+                "mc",
                 "tile",
-                "gw_params1_weight.txt",
-                "gw_params1_returns.txt",
-                "1",
-                "1",
+                "mc_tile_100_200_0.0_0.99_0.005_0_0_0_weights.txt",
+                "mc_tile_100_200_0.0_0.99_0.005_0_0_0_returns.txt",
+                "100",
+                "200",
                 "0.0",
+                "0.99",
+                "0.005",
                 "1",
-                "1",
-                "0",
-                "0",
-                "0"
+                "200",
+                "3"
             ]
         }
     ]
