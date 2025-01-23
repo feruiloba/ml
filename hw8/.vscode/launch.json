@@ -1,0 +1,29 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": [
+                "mc",
+                "tile",
+                "mc_tile_100_200_0.0_0.99_0.005_0_0_0_weights.txt",
+                "mc_tile_100_200_0.0_0.99_0.005_0_0_0_returns.txt",
+                "100",
+                "200",
+                "0.0",
+                "0.99",
+                "0.005",
+                "1",
+                "200",
+                "3"
+            ]
+        }
+    ]
+}
