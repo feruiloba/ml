@@ -30,61 +30,118 @@ class Sigmoid:
     """
     Sigmoid activation function.
 
-    TODO:
     On same lines as above, create your own mytorch.nn.Sigmoid!
     Define 'forward' function.
     Define 'backward' function.
     Read the writeup (Hint: Sigmoid Section) for further details on Sigmoid forward and backward expressions.
     """
 
+    def forward(self, Z):
+        """
+        :param Z: Batch of data Z (N samples, C features) to apply activation function to input Z.
+        :return: Output returns the computed output A (N samples, C features).
+        """
+        self.A = 1 / (1 + np.exp(-Z))
+        
+        return self.A
+
+    def backward(self, dLdA):
+        """
+        :param dldA: a measure of how the post-activations (output) affect the loss. (N, C)
+        :return: dLdZ, how changes in pre-activation features (input) Z affect the loss L. (N, C)
+        """
+        
+        return dLdA * (self.A - self.A * self.A)
+
 
 class Tanh:
     """
     Tanh activation function.
 
-    TODO:
     On same lines as above, create your own mytorch.nn.Tanh!
     Define 'forward' function.
     Define 'backward' function.
     Read the writeup (Hint: Tanh Section) for further details on Tanh forward and backward expressions.
     """
+    def forward(self, Z):
+        """
+        :param Z: Batch of data Z (N samples, C features) to apply activation function to input Z.
+        :return: Output returns the computed output A (N samples, C features).
+        """
+        A = (np.exp(Z) - np.exp(-Z)) / (np.exp(Z) + np.exp(-Z))
+        return self.A
 
+    def backward(self, dLdA):
+        """
+        :param dldA: a measure of how the post-activations (output) affect the loss. (N, C)
+        :return: dLdZ, how changes in pre-activation features (input) Z affect the loss L. (N, C)
+        """
+        return dLdA * (self.A - self.A * self.A)
 
 class ReLU:
     """
     ReLU (Rectified Linear Unit) activation function.
 
-    TODO:
     On same lines as above, create your own mytorch.nn.ReLU!
     Define 'forward' function.
     Define 'backward' function.
     Read the writeup (Hint: ReLU Section) for further details on ReLU forward and backward expressions.
     """
+    def forward(self, Z):
+        """
+        :param Z: Batch of data Z (N samples, C features) to apply activation function to input Z.
+        :return: Output returns the computed output A (N samples, C features).
+        """
+
+    def backward(self, dLdA):
+        """
+        :param dldA: a measure of how the post-activations (output) affect the loss. (N, C)
+        :return: dLdZ, how changes in pre-activation features (input) Z affect the loss L. (N, C)
+        """
 
 
 class GELU:
     """
     GELU (Gaussian Error Linear Unit) activation function.
 
-    TODO:
     On same lines as above, create your own mytorch.nn.GELU!
     Define 'forward' function.
     Define 'backward' function.
     Read the writeup (Hint: GELU Section) for further details on GELU forward and backward expressions.
     Note: Feel free to save any variables from gelu.forward that you might need for gelu.backward.
     """
+    def forward(self, Z):
+        """
+        :param Z: Batch of data Z (N samples, C features) to apply activation function to input Z.
+        :return: Output returns the computed output A (N samples, C features).
+        """
+
+    def backward(self, dLdA):
+        """
+        :param dldA: a measure of how the post-activations (output) affect the loss. (N, C)
+        :return: dLdZ, how changes in pre-activation features (input) Z affect the loss L. (N, C)
+        """
 
 class Swish:
     """
     Swish activation function.
 
-    TODO:
     On same lines as above, create your own Swish which is a torch.nn.SiLU with a learnable parameter (beta)!
     Define 'forward' function.
     Define 'backward' function.
     Read the writeup (Hint: Swish Section) for further details on Swish forward and backward expressions.
     """
+    def forward(self, Z):
+        """
+        :param Z: Batch of data Z (N samples, C features) to apply activation function to input Z.
+        :return: Output returns the computed output A (N samples, C features).
+        """
 
+    def backward(self, dLdA):
+        """
+        :param dldA: a measure of how the post-activations (output) affect the loss. (N, C)
+        :return: dLdZ, how changes in pre-activation features (input) Z affect the loss L. (N, C)
+        """
 
 class Softmax:
     """

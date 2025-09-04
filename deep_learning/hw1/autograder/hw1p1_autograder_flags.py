@@ -2,7 +2,7 @@
 
 # flags for linear.py
 
-DEBUG_AND_GRADE_LINEAR_flag = False
+DEBUG_AND_GRADE_LINEAR_flag = True
 
 # flags for activation.py
 
