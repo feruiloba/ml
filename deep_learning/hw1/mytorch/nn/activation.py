@@ -42,7 +42,7 @@ class Sigmoid:
         :return: Output returns the computed output A (N samples, C features).
         """
         self.A = 1 / (1 + np.exp(-Z))
-        
+
         return self.A
 
     def backward(self, dLdA):
@@ -50,7 +50,7 @@ class Sigmoid:
         :param dldA: a measure of how the post-activations (output) affect the loss. (N, C)
         :return: dLdZ, how changes in pre-activation features (input) Z affect the loss L. (N, C)
         """
-        
+
         return dLdA * (self.A - self.A * self.A)
 
 
@@ -68,7 +68,9 @@ class Tanh:
         :param Z: Batch of data Z (N samples, C features) to apply activation function to input Z.
         :return: Output returns the computed output A (N samples, C features).
         """
-        A = (np.exp(Z) - np.exp(-Z)) / (np.exp(Z) + np.exp(-Z))
+
+        self.A = (np.exp(Z) - np.exp(-Z)) / (np.exp(Z) + np.exp(-Z))
+
         return self.A
 
     def backward(self, dLdA):
@@ -76,7 +78,8 @@ class Tanh:
         :param dldA: a measure of how the post-activations (output) affect the loss. (N, C)
         :return: dLdZ, how changes in pre-activation features (input) Z affect the loss L. (N, C)
         """
-        return dLdA * (self.A - self.A * self.A)
+
+        return dLdA * (1 - self.A * self.A)
 
 class ReLU:
     """
@@ -92,6 +95,9 @@ class ReLU:
         :param Z: Batch of data Z (N samples, C features) to apply activation function to input Z.
         :return: Output returns the computed output A (N samples, C features).
         """
+        self.A = np.maximum(0, Z)
+
+        return self.A
 
     def backward(self, dLdA):
         """
@@ -99,6 +105,7 @@ class ReLU:
         :return: dLdZ, how changes in pre-activation features (input) Z affect the loss L. (N, C)
         """
 
+        return dLdA * np.where(self.A > 0, 1, 0)
 
 class GELU:
     """
