@@ -16,9 +16,9 @@ DEBUG_AND_GRADE_SOFTMAX_flag = True
 
 # flags for mlp.py
 
-DEBUG_AND_GRADE_MLP0_flag = False
-DEBUG_AND_GRADE_MLP1_flag = False
-DEBUG_AND_GRADE_MLP4_flag = False
+DEBUG_AND_GRADE_MLP0_flag = True
+DEBUG_AND_GRADE_MLP1_flag = True
+DEBUG_AND_GRADE_MLP4_flag = True
 
 # flags for loss.py
 
