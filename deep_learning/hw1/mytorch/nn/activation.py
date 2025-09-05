@@ -1,5 +1,5 @@
 import numpy as np
-import scipy
+from scipy import special
 
 
 ### No need to modify Identity class
@@ -24,7 +24,6 @@ class Identity:
         dAdZ = np.ones(self.A.shape, dtype="f")
         dLdZ = dLdA * dAdZ
         return dLdZ
-
 
 class Sigmoid:
     """
@@ -52,7 +51,6 @@ class Sigmoid:
         """
 
         return dLdA * (self.A - self.A * self.A)
-
 
 class Tanh:
     """
@@ -123,13 +121,23 @@ class GELU:
         :return: Output returns the computed output A (N samples, C features).
         """
 
+        self.Z = Z        
+        
+        return 1/2 * Z * (1 + special.erf(Z / np.sqrt(2)))
+
     def backward(self, dLdA):
         """
         :param dldA: a measure of how the post-activations (output) affect the loss. (N, C)
         :return: dLdZ, how changes in pre-activation features (input) Z affect the loss L. (N, C)
         """
 
+        return dLdA * (1/2 * (1 + special.erf(self.Z / np.sqrt(2))) + (self.Z * np.exp(-self.Z**2 / 2)) / np.sqrt(2 * np.pi))
+
 class Swish:
+
+    def __init__(self, beta=1.0):
+        self.beta = beta
+
     """
     Swish activation function.
 
@@ -144,11 +152,20 @@ class Swish:
         :return: Output returns the computed output A (N samples, C features).
         """
 
+        self.Z = Z
+        self.beta_sigmoid = 1 / (1 + np.exp(-self.beta * Z))
+        
+        return self.Z * self.beta_sigmoid
+
     def backward(self, dLdA):
         """
         :param dldA: a measure of how the post-activations (output) affect the loss. (N, C)
         :return: dLdZ, how changes in pre-activation features (input) Z affect the loss L. (N, C)
         """
+
+        self.dLdbeta = np.sum(dLdA * self.Z * self.Z * self.beta_sigmoid * (1 - self.beta_sigmoid))
+
+        return dLdA * (self.beta_sigmoid + self.Z * self.beta * self.beta_sigmoid * (1 - self.beta_sigmoid))
 
 class Softmax:
     """
@@ -168,30 +185,34 @@ class Softmax:
         It will use an entire row of Z to compute an output element.
         Note: How can we handle large overflow values? Hint: Check numerical stability.
         """
-        self.A = None  # TODO
-        raise NotImplementedError  # TODO - What should be the return value?
+        reduced_Z = Z - np.max(Z, axis=1, keepdims=True)
+        sum_exp_reduced_Z = np.sum(np.exp(reduced_Z), axis=1, keepdims=True)
+        self.A = np.exp(reduced_Z) / sum_exp_reduced_Z
+
+        return self.A # Shape should be (N, C)
 
     def backward(self, dLdA):
         # Calculate the batch size and number of features
-        N = None  # TODO
-        C = None  # TODO
+        N = dLdA.shape[0]
+        C = dLdA.shape[1]
 
+        # cLdZ = dLdA * J ->  (N, C) (C, C)
         # Initialize the final output dLdZ with all zeros. Refer to the writeup and think about the shape.
-        dLdZ = None  # TODO
+        dLdZ = np.zeros((N, C))
 
         # Fill dLdZ one data point (row) at a time.
         for i in range(N):
             # Initialize the Jacobian with all zeros.
             # Hint: Jacobian matrix for softmax is a _×_ matrix, but what is _ here?
-            J = None  # TODO
+            J = np.zeros((C, C))
 
             # Fill the Jacobian matrix, please read the writeup for the conditions.
             for m in range(C):
                 for n in range(C):
-                    J[m, n] = None  # TODO
+                    J[m, n] = self.A[i, m] * (1 - self.A[i, m]) if m == n else -self.A[i, m] * self.A[i, n]
 
             # Calculate the derivative of the loss with respect to the i-th input, please read the writeup for it.
             # Hint: How can we use (1×C) and (C×C) to get (1×C) and stack up vertically to give (N×C) derivative matrix?
-            dLdZ[i, :] = None  # TODO
+            dLdZ[i, :] = dLdA[i] @ J
 
-        raise NotImplementedError  # TODO - What should be the return value?
+        return dLdZ

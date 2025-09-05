@@ -10,9 +10,9 @@ DEBUG_AND_GRADE_IDENTITY_flag = True
 DEBUG_AND_GRADE_SIGMOID_flag = True
 DEBUG_AND_GRADE_TANH_flag = True
 DEBUG_AND_GRADE_RELU_flag = True
-DEBUG_AND_GRADE_GELU_flag = False
-DEBUG_AND_GRADE_Swish_flag = False
-DEBUG_AND_GRADE_SOFTMAX_flag = False
+DEBUG_AND_GRADE_GELU_flag = True
+DEBUG_AND_GRADE_Swish_flag = True
+DEBUG_AND_GRADE_SOFTMAX_flag = True
 
 # flags for mlp.py
 
