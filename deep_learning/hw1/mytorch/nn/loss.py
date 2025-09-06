@@ -1,5 +1,5 @@
 import numpy as np
-
+from mytorch.nn.activation import Softmax
 
 class MSELoss:
     def forward(self, A, Y):
@@ -13,12 +13,13 @@ class MSELoss:
         """
         self.A = A
         self.Y = Y
-        self.N = None  # TODO
-        self.C = None  # TODO
-        se = None  # TODO
-        sse = None  # TODO
-        mse = None  # TODO
-        raise NotImplemented  # TODO - What should be the return value?
+        self.N = A.shape[0]
+        self.C = A.shape[1]
+        se = (A - Y) ** 2
+        sse = np.ones(self.N) @ se @ np.ones(self.C)
+        mse = sse / (self.N * self.C)
+        
+        return mse
 
     def backward(self):
         """
@@ -27,9 +28,9 @@ class MSELoss:
 
         Read the writeup (Hint: MSE Loss Section) for implementation details for below code snippet.
         """
-        dLdA = None
-        raise NotImplemented  # TODO - What should be the return value?
+        dLdA = 2 * (self.A - self.Y) / (self.N * self.C)
 
+        return dLdA
 
 class CrossEntropyLoss:
     def forward(self, A, Y):
@@ -45,19 +46,19 @@ class CrossEntropyLoss:
         """
         self.A = A
         self.Y = Y
-        self.N = None  # TODO
-        self.C = None  # TODO
+        self.N = self.A.shape[0]
+        self.C = self.A.shape[1]
 
-        Ones_C = None  # TODO
-        Ones_N = None  # TODO
+        Ones_C = np.ones(self.C)
+        Ones_N = np.ones(self.N)
 
-        self.softmax = None  # TODO - Can you reuse your own softmax here, if not rewrite the softmax forward logic?
+        self.softmax = Softmax() # Can you reuse your own softmax here, if not rewrite the softmax forward logic?
 
-        crossentropy = None  # TODO
-        sum_crossentropy_loss = None  # TODO
+        crossentropy = (-Y * np.log(self.softmax.forward(self.A))) @ Ones_C
+        sum_crossentropy_loss = Ones_N @ crossentropy
         mean_crossentropy_loss = sum_crossentropy_loss / self.N
 
-        raise NotImplemented  # TODO - What should be the return value?
+        return mean_crossentropy_loss
 
     def backward(self):
         """
@@ -66,5 +67,6 @@ class CrossEntropyLoss:
 
         Read the writeup (Hint: Cross-Entropy Loss Section) for implementation details for below code snippet.
         """
-        dLdA = None  # TODO
-        raise NotImplemented  # TODO - What should be the return value?
+        dLdA = (self.softmax.forward(self.A) - self.Y) / self.N
+        
+        return dLdA
