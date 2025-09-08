@@ -13,6 +13,9 @@ img_size = (256,256)
 num_labels = 3
 normalize_mean = [0.485, 0.456, 0.406]
 normalize_std = [0.229, 0.224, 0.225]
+denormalize = T.Normalize(
+ mean=[-m/s for m, s in zip(normalize_mean, normalize_std)],
+ std=[1/s for s in normalize_std])
 
 # Get cpu, gpu or mps device for training.
 device = (
@@ -44,12 +47,12 @@ class CsvImageDataset(Dataset):
 
 def get_data(args):
     transform_img = T.Compose([
-        T.ToTensor(), 
+        T.ToTensor(),
         T.Resize(min(img_size[0], img_size[1]), antialias=True),  # Resize the smallest side to 256 pixels
         T.CenterCrop(img_size),  # Center crop to 256x256
         T.Normalize(mean=normalize_mean, std=normalize_std), # Normalize each color dimension
         ])
-    
+
     if args.grayscale:
         # Append grayscale transformation
         transform_img.transforms.extend([T.Grayscale(num_output_channels=1)])
@@ -75,7 +78,7 @@ def get_data(args):
         print(f"Shape of X [B, C, H, W]: {X.shape}")
         print(f"Shape of y: {y.shape} {y.dtype}")
         break
-    
+
     return train_dataloader, test_dataloader, val_dataloader
 
 class NeuralNetwork(nn.Module):
@@ -110,12 +113,19 @@ def train_one_epoch(dataloader, model, loss_fn, optimizer, t):
 
         pred = model(X)
         loss = loss_fn(pred, y)
+        batch_size = len(y)
+
+        if t % 5 == 0 and batch == 0 and args.use_wandb:
+            # Log an example image (after denormalizing) to wandb
+            for i in range(batch_size):
+                Xi_denorm = denormalize(X[i])
+                caption = f"{pred[i].argmax().item()}/{y[i].item()}"
+                wandb.Image(Xi_denorm, caption=caption, mode="RGB")
 
         loss.backward()
         optimizer.step()
         optimizer.zero_grad()
 
-        batch_size = len(y)
         loss = loss.item() / batch_size
         current = (batch + 1) * batch_size
 
@@ -140,12 +150,12 @@ def evaluate(dataloader, dataname, model, loss_fn):
     correct /= size
     accuracy = 100 * correct
     print(f"{dataname} accuracy = {accuracy:>0.1f}%, {dataname} avg loss = {avg_loss:>8f}")
-    
+
     return accuracy, avg_loss
-    
+
 def main(args):
     torch.manual_seed(10999)
-    
+
     if args.use_wandb:
         wandb.login()
         wandb.init(
@@ -159,10 +169,10 @@ def main(args):
             })
     else:
         wandb.init(mode='disabled')
-    
+
     print(f"Using {device} device")
     train_dataloader, test_dataloader, val_dataloader = get_data(args)
-    
+
     if args.model == 'simple':
         model = NeuralNetwork().to(device)
     elif args.model == 'cnn':
@@ -207,7 +217,7 @@ if __name__ == '__main__':
     parser.add_argument('--learning_rate', type=float, default=1e-3, help='The learning rate for the optimizer')
     parser.add_argument('--model', type=str, choices=['simple', 'cnn'], default='simple', help='The model type')
     parser.add_argument('--grayscale', action='store_true', default=False, help='Use grayscale images instead of RGB')
-    
+
     args = parser.parse_args()
-    
+
     main(args)
