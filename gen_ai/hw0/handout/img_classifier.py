@@ -52,8 +52,8 @@ def get_data(args):
     
     if args.grayscale:
         # Append grayscale transformation
-        raise NotImplementedError("TODO: implement grayscale conversion in the data pipeline")
-        
+        transform_img.transforms.extend([T.Grayscale(num_output_channels=1)])
+
     train_data = CsvImageDataset(
         csv_file='./data/img_train.csv',
         transform=transform_img,
@@ -62,24 +62,35 @@ def get_data(args):
         csv_file='./data/img_test.csv',
         transform=transform_img,
     )
+    val_data = CsvImageDataset(
+        csv_file='./data/img_val.csv',
+        transform=transform_img,
+    )
 
     train_dataloader = DataLoader(train_data, batch_size=args.batch_size)
     test_dataloader = DataLoader(test_data, batch_size=args.batch_size)
+    val_dataloader = DataLoader(val_data, batch_size=args.batch_size)
 
     for X, y in train_dataloader:
         print(f"Shape of X [B, C, H, W]: {X.shape}")
         print(f"Shape of y: {y.shape} {y.dtype}")
         break
     
-    return train_dataloader, test_dataloader
+    return train_dataloader, test_dataloader, val_dataloader
 
 class NeuralNetwork(nn.Module):
     def __init__(self):
         super().__init__()
         self.flatten = nn.Flatten()
         # First layer input size must be the dimension of the image
+
+        if args.grayscale:
+            input_size = img_size[0] * img_size[1] * 1
+        else:
+            input_size = img_size[0] * img_size[1] * 3
+
         self.linear_relu_stack = nn.Sequential(
-            nn.Linear(img_size[0] * img_size[1] * 3, 512),
+            nn.Linear(input_size, 512),
             nn.ReLU(),
             nn.Linear(512, 512),
             nn.ReLU(),
@@ -107,9 +118,13 @@ def train_one_epoch(dataloader, model, loss_fn, optimizer, t):
         batch_size = len(y)
         loss = loss.item() / batch_size
         current = (batch + 1) * batch_size
+
+        if args.use_wandb:
+            wandb.log({"Train Batch Loss": loss, "Num example": current + t * size})
+
         if batch % 10 == 0:
-            print(f"Train batch avg loss = {loss:>7f}  [{current:>5d}/{size:>5d}]")
-        
+            print(f"Train batch avg loss = {loss:>7f}  [{current:>5d}/{size:>5d}], Num example: {current}")
+
 def evaluate(dataloader, dataname, model, loss_fn):
     size = len(dataloader.dataset)
     num_batches = len(dataloader)
@@ -123,18 +138,30 @@ def evaluate(dataloader, dataname, model, loss_fn):
             correct += (pred.argmax(1) == y).type(torch.float).sum().item()
     avg_loss /= size
     correct /= size
-    print(f"{dataname} accuracy = {(100*correct):>0.1f}%, {dataname} avg loss = {avg_loss:>8f}")
+    accuracy = 100 * correct
+    print(f"{dataname} accuracy = {accuracy:>0.1f}%, {dataname} avg loss = {avg_loss:>8f}")
+    
+    return accuracy, avg_loss
     
 def main(args):
     torch.manual_seed(10999)
     
     if args.use_wandb:
-        raise NotImplementedError("TODO: implement wandb logging.")
+        wandb.login()
+        wandb.init(
+            project="img_classifier",
+            config={
+                "epochs": args.n_epochs,
+                "batch_size": args.batch_size,
+                "learning_rate": args.learning_rate,
+                "model": args.model,
+                "grayscale": args.grayscale,
+            })
     else:
         wandb.init(mode='disabled')
     
     print(f"Using {device} device")
-    train_dataloader, test_dataloader = get_data(args)
+    train_dataloader, test_dataloader, val_dataloader = get_data(args)
     
     if args.model == 'simple':
         model = NeuralNetwork().to(device)
@@ -149,8 +176,19 @@ def main(args):
     for t in range(args.n_epochs):
         print(f"\nEpoch {t+1}\n-------------------------------")
         train_one_epoch(train_dataloader, model, loss_fn, optimizer, t)
-        evaluate(train_dataloader, "Train", model, loss_fn)
-    evaluate(test_dataloader, "Test", model, loss_fn)
+        (train_accuracy, train_loss) = evaluate(train_dataloader, "Train", model, loss_fn)
+        (test_accuracy, test_loss) = evaluate(test_dataloader, "Test", model, loss_fn)
+        (val_accuracy, val_loss) = evaluate(val_dataloader, "Validation", model, loss_fn)
+        wandb.log({
+            "Train Accuracy": train_accuracy,
+            "Train Loss": train_loss,
+            "Test Accuracy": test_accuracy,
+            "Test Loss": test_loss,
+            "Validation Accuracy": val_accuracy,
+            "Validation Loss": val_loss,
+            "epoch": t,
+        })
+
     print("Done!")
 
     # Save the model

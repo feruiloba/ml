@@ -1,0 +1,1 @@
+{"Train Accuracy":89.48374760994264,"_wandb":{"runtime":171},"Test Loss":0.9303321050916823,"epoch":4,"_step":334,"_runtime":171,"_timestamp":1.7572764644953032e+09,"Train Batch Loss":0.3680591980616252,"Train Loss":0.25250691654121443,"Num example":198,"Test Accuracy":69.02654867256636}
