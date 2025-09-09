@@ -14,8 +14,10 @@ num_labels = 3
 normalize_mean = [0.485, 0.456, 0.406]
 normalize_std = [0.229, 0.224, 0.225]
 denormalize = T.Normalize(
- mean=[-m/s for m, s in zip(normalize_mean, normalize_std)],
- std=[1/s for s in normalize_std])
+    mean=[-m/s for m, s in zip(normalize_mean, normalize_std)],
+    std=[1/s for s in normalize_std])
+
+categories = ['parrot', 'narwhal', 'axolotl']
 
 # Get cpu, gpu or mps device for training.
 device = (
@@ -115,13 +117,6 @@ def train_one_epoch(dataloader, model, loss_fn, optimizer, t):
         loss = loss_fn(pred, y)
         batch_size = len(y)
 
-        if t % 5 == 0 and batch == 0 and args.use_wandb:
-            # Log an example image (after denormalizing) to wandb
-            for i in range(batch_size):
-                Xi_denorm = denormalize(X[i])
-                caption = f"{pred[i].argmax().item()}/{y[i].item()}"
-                wandb.Image(Xi_denorm, caption=caption, mode="RGB")
-
         loss.backward()
         optimizer.step()
         optimizer.zero_grad()
@@ -135,15 +130,25 @@ def train_one_epoch(dataloader, model, loss_fn, optimizer, t):
         if batch % 10 == 0:
             print(f"Train batch avg loss = {loss:>7f}  [{current:>5d}/{size:>5d}], Num example: {current}")
 
-def evaluate(dataloader, dataname, model, loss_fn):
+def evaluate(dataloader, dataname, model, loss_fn, t):
     size = len(dataloader.dataset)
     num_batches = len(dataloader)
     model.eval()
     avg_loss, correct = 0, 0
     with torch.no_grad():
-        for X, y in dataloader:
+        for batch, (X, y) in enumerate(dataloader):
             X, y = X.to(device), y.to(device)
             pred = model(X)
+
+            if t % 5 == 0 and args.log_images and batch == 0 and args.use_wandb:
+                # Log an example image (after denormalizing) to wandb
+                for i in range(len(y)):
+                    Xi_denorm = denormalize(X[i])
+                    predicted_label = categories[pred[i].argmax().item()]
+                    real_label = categories[y[i].item()]
+                    caption = f"{predicted_label}/{real_label}"
+                    wandb.log({"image": wandb.Image(Xi_denorm, caption=caption, mode="RGB") })
+
             avg_loss += loss_fn(pred, y).item()
             correct += (pred.argmax(1) == y).type(torch.float).sum().item()
     avg_loss /= size
@@ -186,9 +191,9 @@ def main(args):
     for t in range(args.n_epochs):
         print(f"\nEpoch {t+1}\n-------------------------------")
         train_one_epoch(train_dataloader, model, loss_fn, optimizer, t)
-        (train_accuracy, train_loss) = evaluate(train_dataloader, "Train", model, loss_fn)
-        (test_accuracy, test_loss) = evaluate(test_dataloader, "Test", model, loss_fn)
-        (val_accuracy, val_loss) = evaluate(val_dataloader, "Validation", model, loss_fn)
+        (train_accuracy, train_loss) = evaluate(train_dataloader, "Train", model, loss_fn, t)
+        (test_accuracy, test_loss) = evaluate(test_dataloader, "Test", model, loss_fn, t)
+        (val_accuracy, val_loss) = evaluate(val_dataloader, "Validation", model, loss_fn, t)
         wandb.log({
             "Train Accuracy": train_accuracy,
             "Train Loss": train_loss,
@@ -217,6 +222,7 @@ if __name__ == '__main__':
     parser.add_argument('--learning_rate', type=float, default=1e-3, help='The learning rate for the optimizer')
     parser.add_argument('--model', type=str, choices=['simple', 'cnn'], default='simple', help='The model type')
     parser.add_argument('--grayscale', action='store_true', default=False, help='Use grayscale images instead of RGB')
+    parser.add_argument('--log_images', action='store_true', default=False, help='Log images to wandb')
 
     args = parser.parse_args()
 
