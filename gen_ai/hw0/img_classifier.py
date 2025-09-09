@@ -102,16 +102,53 @@ class NeuralNetwork(nn.Module):
             nn.Linear(512, num_labels)
         )
 
+        total_params = sum(
+            param.numel() for param in self.parameters()
+        )
+
+        print(f"Total number of model parameters: {total_params}")
+
     def forward(self, x):
         x = self.flatten(x)
         logits = self.linear_relu_stack(x)
         return logits
+    
+class NeuralNetworkCNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        self.forward_stack = nn.Sequential(
+            nn.Conv2d(in_channels=3, out_channels=128, kernel_size=4, stride=4),
+            nn.LayerNorm([128, 64, 64]),
+            nn.Conv2d(in_channels=128, out_channels=128, kernel_size=7, padding=3),
+            nn.LayerNorm([128, 64, 64]),
+            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=1),
+            nn.GELU(),
+            nn.Conv2d(in_channels=256, out_channels=128, kernel_size=1),
+            nn.AvgPool2d(kernel_size=2),
+            nn.Flatten(),
+            nn.Linear(in_features=(128 * 32 * 32), out_features=3),
+        )
+
+        total_params = sum(
+            param.numel() for param in self.parameters()
+        )
+
+        print(f"Total number of model parameters: {total_params}")
+
+    def forward(self, x):
+        return self.forward_stack(x)
 
 def train_one_epoch(dataloader, model, loss_fn, optimizer, t):
     size = len(dataloader.dataset)
     model.train()
     for batch, (X, y) in enumerate(dataloader):
         X, y = X.to(device), y.to(device)
+
+        """ temp = X
+        for i, layer in enumerate(model.children()):
+            temp = layer(temp)
+            print(f"Layer {i} ({layer.__class__.__name__}): Output Shape = {temp.shape}") """
 
         pred = model(X)
         loss = loss_fn(pred, y)
@@ -181,7 +218,7 @@ def main(args):
     if args.model == 'simple':
         model = NeuralNetwork().to(device)
     elif args.model == 'cnn':
-        raise NotImplementedError("TODO: implement CNN model")
+        model = NeuralNetworkCNN().to(device)
     else:
         raise ValueError(f"Unknown model type: {args.model}")
     print(model)
@@ -211,8 +248,8 @@ def main(args):
     print("Saved PyTorch Model State to model.pth")
 
     # Load the model (just for the sake of example)
-    model = NeuralNetwork().to(device)
-    model.load_state_dict(torch.load("model.pth", weights_only=True))
+    """ model = NeuralNetwork().to(device)
+    model.load_state_dict(torch.load("model.pth", weights_only=True)) """
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'Image Classifier')
