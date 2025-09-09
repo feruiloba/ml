@@ -102,7 +102,17 @@ class ToIntTensor():
         return torch.tensor(x, dtype=torch.int64)
 
 def length_histogram(train_data, pad_idx):
-    raise NotImplementedError("TODO: implement length_histogram")
+    article_lengths = [[len(train_data_row[0])] for train_data_row in train_data]
+    table = wandb.Table(
+        data=article_lengths,
+        columns=["article"],
+    )
+    histogram = wandb.plot.histogram(
+        table,
+        value="article",
+        title="Article Length Histogram",
+    )
+    wandb.log({"histogram-plot1": histogram})
 
 def get_data(args):    
     train_data = CsvTextDataset(
@@ -212,7 +222,12 @@ def main(args):
     torch.manual_seed(10999)
     
     if args.use_wandb:
-        raise NotImplementedError("TODO: implement wandb logging.")
+        wandb.init(
+            project="txt_classifier",
+            config={
+                "epochs": args.epochs,
+                "batch_size": args.batch_size,
+                "learning_rate": args.lr})
     else:
         wandb.init(mode='disabled')
         
