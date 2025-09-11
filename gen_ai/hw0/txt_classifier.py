@@ -100,6 +100,27 @@ class TextTransform():
 class ToIntTensor():
     def __call__(self, x):
         return torch.tensor(x, dtype=torch.int64)
+    
+class TruncateToMaxLen():
+    def __init__(self, max_len):
+        self.max_len = max_len
+
+    def __call__(self, x):
+        return x[:self.max_len] # if len(x) > self.max_len else x
+    
+class PadToMaxLen():
+    def __init__(self, max_len, pad_idx):
+        self.max_len = max_len
+        self.pad_idx = pad_idx
+
+    def __call__(self, x):
+        x_size = len(x)
+        
+        while x_size <= self.max_len:
+            x.append(self.pad_idx)
+            x_size+=1
+
+        return x
 
 def length_histogram(train_data, pad_idx):
     article_lengths = [[len(train_data_row[0])] for train_data_row in train_data]
@@ -129,7 +150,6 @@ def get_data(args):
         ])
     else:
         print("Padding and truncation will be applied.")
-        raise NotImplementedError("TODO: Implement two transforms: TruncateToMaxLen and PadToMaxLen")
         transform_txt = T.Compose([
             TextTransform(corpus_info.tokenizer, corpus_info.vocab),
             TruncateToMaxLen(args.max_len),
@@ -176,6 +196,25 @@ class TextClassificationModel(nn.Module):
         embedded = self.embedding(text)
         return self.fc(embedded)
 
+class LSTMTextClassificationModel(nn.Module):
+    def __init__(self, vocab_size, embed_dim, num_class, pool_kernel_size=4, hidden_dim=64, num_layers=2):
+        super(LSTMTextClassificationModel, self).__init__()
+        self.embedding = nn.Embedding(vocab_size, embed_dim, sparse=False)
+
+        self.lstm_1 = nn.LSTM(embed_dim, hidden_dim, num_layers, batch_first=True)
+        max_pool_dim_1 = hidden_dim//pool_kernel_size
+        self.max_pool_1 = nn.AdaptiveMaxPool1d(max_pool_dim_1)
+        self.linear_1 = nn.Linear(max_pool_dim_1, num_class)
+        
+
+    def forward(self, text):
+        embeds = self.embedding(text)
+        
+        lstm_1_out, _ = self.lstm_1(embeds)
+        max_pool_1_out = self.max_pool_1(lstm_1_out)
+        linear_1_out = self.linear_1(max_pool_1_out)
+        
+        return linear_1_out[:, -1, :]
 
 def train_one_epoch(dataloader, model, criterion, optimizer, epoch):
     model.train()
@@ -236,7 +275,7 @@ def main(args):
     if args.model == 'simple':
         model = TextClassificationModel(corpus_info.vocab_size, args.embed_dim, corpus_info.num_labels).to(device)
     elif args.model == 'lstm':
-        raise NotImplementedError("TODO: implement LSTM model.")
+        model = LSTMTextClassificationModel(corpus_info.vocab_size, args.embed_dim, corpus_info.num_labels).to(device)
     else:
         raise ValueError(f"Unknown model type: {args.model}")
     
@@ -245,12 +284,13 @@ def main(args):
     if args.optimizer == 'sgd':
         optimizer = torch.optim.SGD(model.parameters(), lr=args.lr)
     elif args.optimizer == 'adam':
-        raise NotImplementedError("TODO: implement Adam optimizer.")
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     else:
         raise ValueError(f"Unknown optimizer type: {args.optimizer}")
         
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, gamma=0.1)
 
+    run_start_time = time.time()
     total_accu = None    
     for epoch in range(1, args.epochs + 1):
         epoch_start_time = time.time()
@@ -269,9 +309,16 @@ def main(args):
         )
         print("-" * 59)
 
+
     print("Checking the results of test dataset.")
     accu_test = evaluate(test_dataloader, model, criterion)
     print("test accuracy {:8.3f}".format(accu_test))
+
+    print("Checking the results of val dataset.")
+    accu_val = evaluate(val_dataloader, model, criterion)
+    print("val accuracy {:8.3f}".format(accu_val))
+
+    print("Total time: {:5.2f}s".format(time.time() - run_start_time))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
