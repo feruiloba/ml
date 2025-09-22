@@ -44,7 +44,7 @@ class RotaryPositionalEmbeddings(nn.Module):
     def __init__(self, d: int, base: int = 10_000):
         super().__init__()
         """
-        TODO: Initialize the class with the input arguments, as well as any values you may want to cache.
+        Initialize the class with the input arguments, as well as any values you may want to cache.
         """
         self.d = d
         self.base = base
@@ -56,7 +56,7 @@ class RotaryPositionalEmbeddings(nn.Module):
 
     def _build_cache(self, Y: torch.Tensor):
         """
-        TODO: Build a cache for efficient computation of the rotary embeddings.
+        Build a cache for efficient computation of the rotary embeddings.
         Hint: A cache is used to store objects that will be used repeatedly in later computation so that
         they do not need to be calculated over and over. Think about which components of the forward
         process can be cached.
@@ -69,7 +69,7 @@ class RotaryPositionalEmbeddings(nn.Module):
 
     def forward(self, Y: torch.Tensor):
         """
-        TODO: Perform the forward pass following the formula on page 13 of the writeup.
+        Perform the forward pass following the formula on page 13 of the writeup.
         Note that the input Y here will be either the queries or keys.
 
         Make sure that you are building and using your cache when necessary!
@@ -112,7 +112,7 @@ class CausalSelfAttention(nn.Module):
         self.rope = config.rope
         if self.rope:
             """
-            TODO: Initialize the RotaryPositionalEmbeddings class with the relevant arguments
+            Initialize the RotaryPositionalEmbeddings class with the relevant arguments
             """
             self.query_rotary_pe = RotaryPositionalEmbeddings(d=self.n_embd / self.n_head, base=config.block_size) # Do NOT rename self.query_rotary_pe.
             self.key_rotary_pe = RotaryPositionalEmbeddings(d=self.n_embd / self.n_head, base=config.block_size) # Do NOT rename self.key_rotary_pe.
@@ -141,7 +141,7 @@ class CausalSelfAttention(nn.Module):
 
         if self.rope:
             """
-            TODO: Implement the forward pass when using RoPE.
+            Implement the forward pass when using RoPE.
             """
             # raise NotImplementedError("Attention forward pass using RoPE not implemented.")
             q = self.query_rotary_pe(q)
@@ -176,7 +176,7 @@ class GroupedQueryAttention(nn.Module):
         super().__init__()
 
         """
-        TODO: Ensure the following:
+        Ensure the following:
         1. The embedding dimension is divisible by both the number of query heads and key/value heads.
         2. The number of query heads is divisible by the number of key/value heads.
 
@@ -186,39 +186,91 @@ class GroupedQueryAttention(nn.Module):
         Please do not rename the key, query, value projections, and use nn.Linear() to define them.
 
         """
+        assert config.n_embd % config.n_query_head == 0
+        assert config.n_embd % config.n_kv_head == 0
+        assert config.n_query_head % config.n_kv_head == 0
 
-        #### TODO: Initialize any required variables. ####
+        #### Initialize any required variables. ####
+        self.n_query_head = config.n_query_head
+        self.n_kv_head = config.n_kv_head # number of groups
+        self.n_embd = config.n_embd
 
-        # TODO: Key, Query, Value Projections: you must define these as nn.Linear().
+        self.group_size = config.n_kv_head * config.n_embd // config.n_query_head
+
+        # Key, Query, Value Projections: you must define these as nn.Linear().
         # Keep in mind the shape that you want these projections to output.
-        self.q_proj = None # Do NOT rename q_proj.
-        self.k_proj = None # Do NOT rename k_proj.
-        self.v_proj = None # Do NOT rename v_proj.
+        self.q_proj = nn.Linear(config.n_embd, config.n_embd)
+        self.k_proj = nn.Linear(config.n_embd, self.group_size)
+        self.v_proj = nn.Linear(config.n_embd, self.group_size)
 
-        # TODO: Output Projection: you must define this as nn.Linear().
-        self.out_proj = None # Do NOT rename out_proj.
+        # Output Projection: you must define this as nn.Linear().
+        self.out_proj = nn.Linear(config.n_embd, self.n_embd)
 
         #### TODO: Complete initialization of other variables here, if needed. ####
+        self.num_groups = self.n_query_head // self.n_kv_head
 
-        # TODO: define regularization (attn_dropout and resid_dropout)
+        # define regularization (attn_dropout and resid_dropout)
+        self.attn_dropout = nn.Dropout(config.attn_pdrop)
+        self.resid_dropout = nn.Dropout(config.resid_pdrop)
 
-        # TODO: create causal mask
+        # create causal mask
+        self.register_buffer("bias", torch.tril(torch.ones(config.block_size, config.block_size))
+                                    .view(1, 1, config.block_size, config.block_size))
 
-        # TODO:  Implement RoPE for GQA if the config specifies that RoPE should be used
+        # Implement RoPE for GQA if the config specifies that RoPE should be used
         self.rope = config.rope
         if self.rope:
-            self.query_rotary_pe = RotaryPositionalEmbeddings(d=...) # Do NOT rename.
-            self.key_rotary_pe = RotaryPositionalEmbeddings(d=...) # Do NOT rename.
-
-        raise NotImplementedError("Initialization is not implemented.")
+            self.query_rotary_pe = RotaryPositionalEmbeddings(d=self.n_embd // self.n_query_head, base=config.block_size) # Do NOT rename self.query_rotary_pe.
+            self.key_rotary_pe = RotaryPositionalEmbeddings(d=self.n_embd // self.n_kv_head, base=config.block_size) # Do NOT rename self.key_rotary_pe.
 
     def forward(self, x):
         """
-        TODO: Implement the forward pass for Grouped Query Attention in a similar fashion to CausalSelfAttention.
+        Implement the forward pass for Grouped Query Attention in a similar fashion to CausalSelfAttention.
         Make sure to implement RoPE for GQA if the config specifies that RoPE should be used, and keep track of memory consumed.
         """
 
-        raise NotImplementedError("Forward pass is not implemented.")
+        b, t, n_embd = x.size() # batch size, sequence length, embedding dimensionality (n_embd)
+
+        # calculate query, key, values based on the input x
+        q = self.q_proj(x)
+        k = self.k_proj(x)
+        v = self.v_proj(x)
+
+        # split the embedding dimension (n_embd) across the number of heads by introducing an additional 'h' dimension
+        # reshape the query, key, value tensors to increase efficiency of matrix multiplication
+        # b = batch size, t = sequence length, h = number of heads, d = n_embd / number of heads, g = number of groups
+        q = rearrange(q, 'b t (g h d) -> b g h t d', g=self.num_groups, d=self.group_size)
+        k = rearrange(k, 'b t (h d) -> b h t d', d=self.group_size)
+        v = rearrange(v, 'b t (h d) -> b h t d', d=self.group_size)
+
+        if self.rope:
+            """
+            Implement the forward pass when using RoPE.
+            """
+            # raise NotImplementedError("Attention forward pass using RoPE not implemented.")
+            q = self.query_rotary_pe(q)
+            k = self.key_rotary_pe(k)
+
+        # track the memory consumed by the model
+        torch.cuda.empty_cache()
+        start_memory = torch.cuda.memory_allocated()
+        # compute square root of (n_embd / number of heads) to scale the dot product
+        scale = math.sqrt(k.size(-1))
+        # calculate the attention scores with the query and  key
+        att = einsum(q, k, 'b g h q d, b h k d -> b h q k') / scale
+        att = att.masked_fill(self.bias[:,:,:t,:t] == 0, float('-inf'))
+        att = F.softmax(att, dim=-1)
+        att = self.attn_dropout(att)
+        # matrix multiplication of attention scores and value
+        y = einsum(att, v, 'b h q t, b h t d -> b h q d')
+        end_memory = torch.cuda.memory_allocated()
+        # rearrange the output tensor to (batch size, sequence length, n_embd)
+        y = rearrange(y, 'b h q d -> b q (h d)') # re-assemble all head outputs side by side
+
+        # output projection
+        y = self.resid_dropout(self.out_proj(y))
+        return y, end_memory-start_memory
+
 
 class Block(nn.Module):
     """ an unassuming Transformer block """

@@ -14,11 +14,11 @@ from mingpt.utils import CfgNode as CN
 
 TEST_DATA_1 = {
     "x": torch.tensor([
-            [[1.0, 0.5, 0.2, 0.1, -0.3, 0.6, 0.8, -0.5, 0.7, 0.3, 0.2, -0.2], 
-            [0.4, -0.1, 0.3, 0.7, 0.1, -0.2, 0.5, -0.4, 0.2, 0.6, -0.1, 0.4]], 
+            [[1.0, 0.5, 0.2, 0.1, -0.3, 0.6, 0.8, -0.5, 0.7, 0.3, 0.2, -0.2],
+            [0.4, -0.1, 0.3, 0.7, 0.1, -0.2, 0.5, -0.4, 0.2, 0.6, -0.1, 0.4]],
 
-            [[-0.5, 0.2, 0.6, -0.3, 0.9, -0.7, 0.1, -0.2, 0.4, 0.5, 0.3, -0.6], 
-            [0.9, -0.7, 0.1, -0.2, -0.1, 0.2, 0.8, -0.4, 0.6, 0.3, -0.9, 0.5]]  
+            [[-0.5, 0.2, 0.6, -0.3, 0.9, -0.7, 0.1, -0.2, 0.4, 0.5, 0.3, -0.6],
+            [0.9, -0.7, 0.1, -0.2, -0.1, 0.2, 0.8, -0.4, 0.6, 0.3, -0.9, 0.5]]
         ]),
 
     "q_proj_weight": torch.tensor([[ 0.1495,  0.1324, -0.1786,  0.2149, -0.1697, -0.0976,  0.0825, -0.0122,
@@ -56,8 +56,8 @@ TEST_DATA_1 = {
         [-0.0351, -0.2722,  0.2481, -0.1330, -0.1499, -0.2486,  0.1404, -0.0627,
          -0.0567,  0.1426, -0.0241, -0.1208],
         [ 0.0656, -0.2012, -0.0790,  0.1376,  0.0991,  0.2098,  0.2038,  0.1131,
-          0.1569, -0.1293,  0.0624,  0.0982]]), 
-  
+          0.1569, -0.1293,  0.0624,  0.0982]]),
+
     "k_proj_bias": torch.tensor([-0.2841, -0.1966,  0.0917,  0.0586]),
 
     "v_proj_weight": torch.tensor([[-0.2421, -0.0985, -0.0801,  0.0967, -0.1813,  0.2452,  0.2555, -0.2769,
@@ -67,8 +67,8 @@ TEST_DATA_1 = {
         [ 0.2770,  0.1927, -0.0198,  0.2248, -0.1363, -0.1802,  0.1956, -0.0422,
          -0.0826, -0.2062, -0.1227, -0.1068],
         [-0.1452, -0.1286,  0.0277,  0.2578,  0.1878,  0.1314,  0.1801,  0.1107,
-          0.2759, -0.1299,  0.2254,  0.2631]]), 
-  
+          0.2759, -0.1299,  0.2254,  0.2631]]),
+
     "v_proj_bias": torch.tensor([-0.0012,  0.1807,  0.0342, -0.2545]),
 
     "out_proj_weight_correct": torch.tensor([[-3.4733e-02, -1.2103e-01, -2.6552e-01, -8.2804e-02, -2.2114e-01,
@@ -106,7 +106,7 @@ TEST_DATA_1 = {
           2.8094e-01,  1.2355e-01],
         [-9.1161e-02,  1.3756e-01,  1.6890e-01,  8.2898e-02, -2.5251e-01,
          -1.8564e-02, -1.2917e-01,  1.7565e-01, -2.5932e-01, -1.2290e-01,
-          1.0364e-01,  4.1356e-02]]), 
+          1.0364e-01,  4.1356e-02]]),
     "out_proj_bias_correct": torch.tensor([ 0.2691,  0.1451,  0.1171, -0.1659, -0.2344,  0.2680,  0.2594, -0.1885,
         -0.0597,  0.1000, -0.1104, -0.2673]),
 }
@@ -138,7 +138,7 @@ class TestModels(unittest.TestCase):
             missing_files = check_submitted_files(['model.py'])
             assert len(missing_files) == 0, f"Missing files: {missing_files}"
             shutil.copy('/autograder/submission/model.py', './mingpt/model.py')
-        
+
     @weight(1)
     def test_02_gqa(self):
         """[T02] Test GroupedQueryAttention"""
@@ -170,7 +170,7 @@ class TestModels(unittest.TestCase):
           -0.1469,  0.1620,  0.2659, -0.2455, -0.0866],
          [ 0.1833,  0.0413,  0.0351,  0.1469, -0.2484,  0.3980,  0.5736,
           -0.1203,  0.0895,  0.2163, -0.1682, -0.1800]]])
-        
+
         expected_output_f24_correct_rearrange = torch.tensor([[[ 0.3710,  0.3766, -0.1023, -0.0708, -0.1940,  0.3868,  0.2507,
            0.0327, -0.1039,  0.1857, -0.0151, -0.3274],
          [ 0.3310,  0.2748, -0.0010, -0.1138, -0.2200,  0.3259,  0.2666,
@@ -192,7 +192,7 @@ class TestModels(unittest.TestCase):
         C.model.n_kv_head = 2
         C.model.n_embd = embedding_dim
         C.model.rope = False
-        
+
         gqa_model = model.GroupedQueryAttention(config=C.model)
         gqa_model.eval()
 
@@ -229,7 +229,7 @@ class TestModels(unittest.TestCase):
         out_proj_weight_correct = TEST_DATA_1["out_proj_weight_correct"]
         out_proj_bias_correct = TEST_DATA_1["out_proj_bias_correct"]
         _, B = gqa_model.out_proj.weight.shape
-        
+
         if B == 12:
             gqa_model.out_proj.weight = torch.nn.Parameter(out_proj_weight_correct)
             gqa_model.out_proj.bias = torch.nn.Parameter(out_proj_bias_correct)
@@ -253,9 +253,9 @@ class TestModels(unittest.TestCase):
         """[T03] Test RotaryPositionalEmbeddings"""
         # Wait to import until the files are correctly placed
         from mingpt import model
-        
+
         torch.manual_seed(3407)
-        embedding_dim = 4 
+        embedding_dim = 4
         x = TEST_DATA_2["x"]
         C = CN()
         C.system = CN()
@@ -267,16 +267,16 @@ class TestModels(unittest.TestCase):
         C.model.n_kv_head = 2
         C.model.n_embd = embedding_dim
         C.model.embedding_dim = embedding_dim
-        C.model.base = 10000 
+        C.model.base = 10000
         C.model.rope = True
 
         rope_model = model.RotaryPositionalEmbeddings(d=C.model.embedding_dim//C.model.n_kv_head, base=C.model.base)
-        
+
         expected_output = TEST_DATA_2["expected_output"]
         torch.manual_seed(3407)
         output = rope_model(x)
         torch.testing.assert_close(output, expected_output, atol=1e-4, rtol=1e-4)
-    
+
     @weight(1)
     def test_04_gqa(self):
         """[T04] Test GroupedQueryAttention with Dropout"""
@@ -300,7 +300,7 @@ class TestModels(unittest.TestCase):
         C.model.n_kv_head = 2
         C.model.n_embd = embedding_dim
         C.model.rope = False
-        
+
         gqa_model_without_dropout = model.GroupedQueryAttention(config=C.model)
         gqa_model_without_dropout.eval()
         C.model.attn_pdrop = 0.9
@@ -321,7 +321,7 @@ class TestModels(unittest.TestCase):
 
         gqa_model_without_attn_dropout.q_proj.weight = torch.nn.Parameter(q_proj_weight)
         gqa_model_without_attn_dropout.q_proj.bias = torch.nn.Parameter(q_proj_bias)
-        
+
 
         k_proj_weight = TEST_DATA_1["k_proj_weight"]
         k_proj_bias = TEST_DATA_1["k_proj_bias"]
@@ -399,7 +399,7 @@ class TestModels(unittest.TestCase):
           except AssertionError:
             return  # Tensors are different as expected
           raise AssertionError("Some or all dropout layers are not being applied.")
-        
+
         raise AssertionError("Some or all dropout layers are not being applied.")
 
     @weight(1)
