@@ -240,8 +240,8 @@ class GroupedQueryAttention(nn.Module):
         # reshape the query, key, value tensors to increase efficiency of matrix multiplication
         # b = batch size, t = sequence length, h = number of heads, d = n_embd / number of heads, g = number of groups
         q = rearrange(q, 'b t (g h d) -> b g h t d', g=self.num_groups, d=self.group_size)
-        k = rearrange(k, 'b t (h d) -> b h t d', d=self.group_size)
-        v = rearrange(v, 'b t (h d) -> b h t d', d=self.group_size)
+        k = rearrange(k, 'b t (h d) -> b h t d', d=self.group_size) # TODO: figure out how to scale this by the number of groups
+        v = rearrange(v, 'b t (h d) -> b h t d', d=self.group_size) # TODO: figure out how to scale this by the number of groups
 
         if self.rope:
             """
