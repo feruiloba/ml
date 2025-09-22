@@ -33,33 +33,39 @@ class NewGELU(nn.Module):
         return 0.5 * x * (1.0 + torch.tanh(math.sqrt(2.0 / math.pi) * (x + 0.044715 * torch.pow(x, 3.0))))
 
 class RotaryPositionalEmbeddings(nn.Module):
-    """ 
+    """
     TODO: Implement RoPE introduced in the paper RoFormer: Enhanced Transformer with Rotary Position Embedding.
     Reference: https://arxiv.org/abs/2104.09864
     You will be implementing the computationally efficient form of the rotary matrix in PyTorch.
-    Refer to the "Example: Converting Math to PyTorch Code" slide from recitation if you need help translating 
+    Refer to the "Example: Converting Math to PyTorch Code" slide from recitation if you need help translating
     the equation into code.
     """
 
     def __init__(self, d: int, base: int = 10_000):
         super().__init__()
-        """ 
+        """
         TODO: Initialize the class with the input arguments, as well as any values you may want to cache.
         """
         self.d = d
         self.base = base
 
-        raise NotImplementedError("Initialization is not implemented.")
+        theta = 1 / (base ** (torch.arange(0, d, 2).float() / d))
+        indices = torch.arange(1, base+1).float()
+        self.register_buffer("sin_matrix", (torch.outer(indices, theta).repeat(1, 2)).sin())
+        self.register_buffer("cos_matrix", (torch.outer(indices, theta).repeat(1, 2)).cos())
 
     def _build_cache(self, Y: torch.Tensor):
         """
         TODO: Build a cache for efficient computation of the rotary embeddings.
-        Hint: A cache is used to store objects that will be used repeatedly in later computation so that 
+        Hint: A cache is used to store objects that will be used repeatedly in later computation so that
         they do not need to be calculated over and over. Think about which components of the forward
-        process can be cached. 
+        process can be cached.
         """
+        if not hasattr(self, 'cos_matrix_seq_len'):
+            self.cos_matrix_seq_len = self.cos_matrix[:Y.size(-2)]
 
-        raise NotImplementedError("Rotary embeddings cache not implemented.")
+        if not hasattr(self, 'sin_matrix_seq_len'):
+            self.sin_matrix_seq_len = self.sin_matrix[:Y.size(-2)]
 
     def forward(self, Y: torch.Tensor):
         """
@@ -67,9 +73,14 @@ class RotaryPositionalEmbeddings(nn.Module):
         Note that the input Y here will be either the queries or keys.
 
         Make sure that you are building and using your cache when necessary!
+        Y: (batch size, number of heads, sequence length, head dimension)
         """
+        self._build_cache(Y)
+        left_Y = Y[..., :self.d//2]
+        right_Y = Y[..., self.d//2:]
+        rotated_Y = torch.cat([-right_Y, left_Y], dim=-1)
 
-        raise NotImplementedError("Forward pass not implemented.")
+        return Y * self.cos_matrix_seq_len + rotated_Y * self.sin_matrix_seq_len
 
 class CausalSelfAttention(nn.Module):
     """
@@ -97,16 +108,16 @@ class CausalSelfAttention(nn.Module):
         # causal mask to ensure that attention is only applied to the left in the input sequence
         self.register_buffer("bias", torch.tril(torch.ones(config.block_size, config.block_size))
                                      .view(1, 1, config.block_size, config.block_size))
-        
+
         self.rope = config.rope
         if self.rope:
             """
             TODO: Initialize the RotaryPositionalEmbeddings class with the relevant arguments
             """
-            self.query_rotary_pe = RotaryPositionalEmbeddings(d=...) # Do NOT rename self.query_rotary_pe.
-            self.key_rotary_pe = RotaryPositionalEmbeddings(d=...) # Do NOT rename self.key_rotary_pe.
-            raise NotImplementedError("Attention initialization using RoPE not implemented.")
-        
+            self.query_rotary_pe = RotaryPositionalEmbeddings(d=self.n_embd / self.n_head, base=config.block_size) # Do NOT rename self.query_rotary_pe.
+            self.key_rotary_pe = RotaryPositionalEmbeddings(d=self.n_embd / self.n_head, base=config.block_size) # Do NOT rename self.key_rotary_pe.
+            # raise NotImplementedError("Attention initialization using RoPE not implemented.")
+
     def forward(self, x):
         b, t, n_embd = x.size() # batch size, sequence length, embedding dimensionality (n_embd)
 
@@ -132,7 +143,9 @@ class CausalSelfAttention(nn.Module):
             """
             TODO: Implement the forward pass when using RoPE.
             """
-            raise NotImplementedError("Attention forward pass using RoPE not implemented.")
+            # raise NotImplementedError("Attention forward pass using RoPE not implemented.")
+            q = self.query_rotary_pe(q)
+            k = self.key_rotary_pe(k)
 
         # track the memory consumed by the model
         torch.cuda.empty_cache()
@@ -163,7 +176,7 @@ class GroupedQueryAttention(nn.Module):
         super().__init__()
 
         """
-        TODO: Ensure the following: 
+        TODO: Ensure the following:
         1. The embedding dimension is divisible by both the number of query heads and key/value heads.
         2. The number of query heads is divisible by the number of key/value heads.
 
@@ -206,7 +219,7 @@ class GroupedQueryAttention(nn.Module):
         """
 
         raise NotImplementedError("Forward pass is not implemented.")
-    
+
 class Block(nn.Module):
     """ an unassuming Transformer block """
 
