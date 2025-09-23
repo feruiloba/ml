@@ -1,0 +1,54 @@
+_wandb:
+    value:
+        cli_version: 0.21.3
+        e:
+            13buc8g3fbx1ibn5zy39ir6r6bpq5he8:
+                args:
+                    - --use_wandb
+                codePath: gen_ai/hw0/handout/img_classifier.py
+                codePathLocal: img_classifier.py
+                cpu_count: 10
+                cpu_count_logical: 20
+                disk:
+                    /:
+                        total: "1081101176832"
+                        used: "55855763456"
+                email: fruiloba@andrew.cmu.edu
+                executable: /home/feruiloba/ml/gen_ai/hw0/bin/python
+                git:
+                    commit: ae41f78386c5f14ddf36a6a5c20303c4713f71cd
+                    remote: https://github.com/feruiloba/ml.git
+                host: DESKTOP-I3DHA0E
+                memory:
+                    total: "33534672896"
+                os: Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35
+                program: /home/feruiloba/ml/gen_ai/hw0/handout/img_classifier.py
+                python: CPython 3.12.11
+                root: /home/feruiloba/ml/gen_ai/hw0/handout
+                startedAt: "2025-09-07T20:48:08.007434Z"
+                writerId: 13buc8g3fbx1ibn5zy39ir6r6bpq5he8
+        m: []
+        python_version: 3.12.11
+        t:
+            "1":
+                - 1
+                - 41
+            "2":
+                - 1
+                - 41
+            "3":
+                - 16
+            "4": 3.12.11
+            "5": 0.21.3
+            "12": 0.21.3
+            "13": linux-x86_64
+batch_size:
+    value: 8
+epochs:
+    value: 5
+grayscale:
+    value: false
+learning_rate:
+    value: 0.001
+model:
+    value: simple

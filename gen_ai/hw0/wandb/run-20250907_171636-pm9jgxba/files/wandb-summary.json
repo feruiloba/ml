@@ -1,0 +1,1 @@
+{"Num example":2290,"Test Accuracy":69.02654867256636,"Train Loss":0.25250691654121443,"Test Loss":0.9303321050916823,"Train Batch Loss":0.3680591980616252,"Validation Accuracy":71.42857142857143,"Train Accuracy":89.48374760994264,"Validation Loss":0.9959953193153653,"_wandb":{"runtime":190},"_runtime":190,"_timestamp":1.7572799869550173e+09,"epoch":4,"_step":334}

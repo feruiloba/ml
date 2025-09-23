@@ -1,0 +1,31 @@
+{
+  "os": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.35",
+  "python": "CPython 3.12.11",
+  "startedAt": "2025-09-07T20:48:08.007434Z",
+  "args": [
+    "--use_wandb"
+  ],
+  "program": "/home/feruiloba/ml/gen_ai/hw0/handout/img_classifier.py",
+  "codePath": "gen_ai/hw0/handout/img_classifier.py",
+  "codePathLocal": "img_classifier.py",
+  "git": {
+    "remote": "https://github.com/feruiloba/ml.git",
+    "commit": "ae41f78386c5f14ddf36a6a5c20303c4713f71cd"
+  },
+  "email": "fruiloba@andrew.cmu.edu",
+  "root": "/home/feruiloba/ml/gen_ai/hw0/handout",
+  "host": "DESKTOP-I3DHA0E",
+  "executable": "/home/feruiloba/ml/gen_ai/hw0/bin/python",
+  "cpu_count": 10,
+  "cpu_count_logical": 20,
+  "disk": {
+    "/": {
+      "total": "1081101176832",
+      "used": "55855763456"
+    }
+  },
+  "memory": {
+    "total": "33534672896"
+  },
+  "writerId": "13buc8g3fbx1ibn5zy39ir6r6bpq5he8"
+}
