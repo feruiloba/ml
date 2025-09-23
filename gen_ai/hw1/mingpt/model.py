@@ -114,8 +114,8 @@ class CausalSelfAttention(nn.Module):
             """
             Initialize the RotaryPositionalEmbeddings class with the relevant arguments
             """
-            self.query_rotary_pe = RotaryPositionalEmbeddings(d=self.n_embd / self.n_head, base=config.block_size) # Do NOT rename self.query_rotary_pe.
-            self.key_rotary_pe = RotaryPositionalEmbeddings(d=self.n_embd / self.n_head, base=config.block_size) # Do NOT rename self.key_rotary_pe.
+            self.query_rotary_pe = RotaryPositionalEmbeddings(d=self.n_embd // self.n_head, base=config.block_size) # Do NOT rename self.query_rotary_pe.
+            self.key_rotary_pe = RotaryPositionalEmbeddings(d=self.n_embd // self.n_head, base=config.block_size) # Do NOT rename self.key_rotary_pe.
             # raise NotImplementedError("Attention initialization using RoPE not implemented.")
 
     def forward(self, x):
@@ -221,7 +221,7 @@ class GroupedQueryAttention(nn.Module):
         self.rope = config.rope
         if self.rope:
             self.query_rotary_pe = RotaryPositionalEmbeddings(d=self.n_embd // self.n_query_head, base=config.block_size) # Do NOT rename self.query_rotary_pe.
-            self.key_rotary_pe = RotaryPositionalEmbeddings(d=self.n_embd // self.n_kv_head, base=config.block_size) # Do NOT rename self.key_rotary_pe.
+            self.key_rotary_pe = RotaryPositionalEmbeddings(d=self.n_embd // self.n_query_head, base=config.block_size) # Do NOT rename self.key_rotary_pe.
 
     def forward(self, x):
         """
@@ -239,9 +239,11 @@ class GroupedQueryAttention(nn.Module):
         # split the embedding dimension (n_embd) across the number of heads by introducing an additional 'h' dimension
         # reshape the query, key, value tensors to increase efficiency of matrix multiplication
         # b = batch size, t = sequence length, h = number of heads, d = n_embd / number of heads, g = number of groups
-        q = rearrange(q, 'b t (g h d) -> b g h t d', g=self.num_groups, d=self.group_size)
-        k = rearrange(k, 'b t (h d) -> b h t d', d=self.group_size) # TODO: figure out how to scale this by the number of groups
-        v = rearrange(v, 'b t (h d) -> b h t d', d=self.group_size) # TODO: figure out how to scale this by the number of groups
+        q = rearrange(q, 'b t (h d) -> b h t d', h=self.n_query_head)
+        k = rearrange(k, 'b t (h d) -> b h t d', h=self.n_kv_head) 
+        k = k.repeat_interleave(self.num_groups, dim=1) # scale on the head dim by the number of groups
+        v = rearrange(v, 'b t (h d) -> b h t d', h=self.n_kv_head)
+        v = v.repeat_interleave(self.num_groups, dim=1) # scale on the head dim by the number of groups
 
         if self.rope:
             """
@@ -257,7 +259,7 @@ class GroupedQueryAttention(nn.Module):
         # compute square root of (n_embd / number of heads) to scale the dot product
         scale = math.sqrt(k.size(-1))
         # calculate the attention scores with the query and  key
-        att = einsum(q, k, 'b g h q d, b h k d -> b h q k') / scale
+        att = einsum(q, k, 'b h q d, b h k d -> b h q k') / scale
         att = att.masked_fill(self.bias[:,:,:t,:t] == 0, float('-inf'))
         att = F.softmax(att, dim=-1)
         att = self.attn_dropout(att)
