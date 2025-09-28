@@ -51,8 +51,8 @@ class RotaryPositionalEmbeddings(nn.Module):
 
         theta = 1 / (base ** (torch.arange(0, d, 2).float() / d))
         indices = torch.arange(1, base+1).float()
-        self.register_buffer("sin_matrix", (torch.outer(indices, theta).repeat(1, 2)).sin())
-        self.register_buffer("cos_matrix", (torch.outer(indices, theta).repeat(1, 2)).cos())
+        self.register_buffer("sin_matrix", (torch.outer(indices, theta).repeat(1, 2)).sin(), persistent=False)
+        self.register_buffer("cos_matrix", (torch.outer(indices, theta).repeat(1, 2)).cos(), persistent=False)
 
     def _build_cache(self, Y: torch.Tensor):
         """
@@ -61,11 +61,9 @@ class RotaryPositionalEmbeddings(nn.Module):
         they do not need to be calculated over and over. Think about which components of the forward
         process can be cached.
         """
-        if not hasattr(self, 'cos_matrix_seq_len'):
-            self.cos_matrix_seq_len = self.cos_matrix[:Y.size(-2)]
+        self.cos_matrix_seq_len = self.cos_matrix[:Y.size(-2)]
 
-        if not hasattr(self, 'sin_matrix_seq_len'):
-            self.sin_matrix_seq_len = self.sin_matrix[:Y.size(-2)]
+        self.sin_matrix_seq_len = self.sin_matrix[:Y.size(-2)]
 
     def forward(self, Y: torch.Tensor):
         """

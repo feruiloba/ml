@@ -5,6 +5,7 @@ import json
 import random
 from ast import literal_eval
 
+import wandb
 import numpy as np
 import torch
 
@@ -27,6 +28,12 @@ def setup_logging(config):
     # log the config itself
     with open(os.path.join(work_dir, 'config.json'), 'w') as f:
         f.write(json.dumps(config.to_dict(), indent=4))
+
+    if config.use_wandb:
+        wandb.login()
+        wandb.init(
+            project="rope_gqa",
+            config=config)
 
 class CfgNode:
     """ a lightweight configuration class inspired by yacs """

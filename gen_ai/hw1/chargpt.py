@@ -9,6 +9,7 @@ import json
 import torch
 from torch.utils.data import Dataset
 from torch.utils.data.dataloader import DataLoader
+import wandb
 
 from mingpt.model import GPT
 from mingpt.trainer import Trainer
@@ -40,6 +41,9 @@ def get_config():
     # trainer
     C.trainer = Trainer.get_default_config()
     C.trainer.learning_rate = 5e-4 # the model we're using is so small that we can go a bit faster
+
+    # logging and wandb
+    C.use_wandb = False
 
     return C
 
@@ -119,6 +123,15 @@ if __name__ == '__main__':
     attn_mem = []
     # iteration callback
     def batch_end_callback(trainer):
+        if trainer.iter_num % 5 == 0 and config.use_wandb:
+            print("Logging to wandb")
+            wandb.log({
+                "iter_dt": trainer.iter_dt,
+                "iter": trainer.iter_num,
+                "train_loss": trainer.loss.item(),
+                "attn_times": trainer.attn_times*1000
+            })
+
         if trainer.iter_num % 1 == 0:
             train_losses.append(trainer.loss.item())
             attn_times.append(trainer.attn_times*1000)
@@ -133,7 +146,7 @@ if __name__ == '__main__':
             model.eval()
             with torch.no_grad():
                 # sample from the model...
-                context = "O God, O God!"
+                context = "'Tis not unknown to you, Antonio, How much I have disabled mine estate"
                 encoded_context = [train_dataset.stoi[s] for s in context]
                 x = torch.tensor(encoded_context, dtype=torch.long)[None,...].to(trainer.device)
                 y, attn_time = model.generate(x, 500, temperature=1.0, do_sample=True, top_k=10)
