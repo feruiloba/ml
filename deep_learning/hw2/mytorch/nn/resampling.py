@@ -12,8 +12,11 @@ class Upsample1d():
         Return:
             Z (np.array): (batch_size, in_channels, output_width)
         """
-        Z = None  # TODO
-        return NotImplemented
+        output_width = self.upsampling_factor * (A.shape[2] - 1) + 1
+        padded_matrix = np.zeros((A.shape[0], A.shape[1], output_width))
+        padded_matrix[:, :, ::self.upsampling_factor] = A
+
+        return padded_matrix
 
     def backward(self, dLdZ):
         """
@@ -22,8 +25,7 @@ class Upsample1d():
         Return:
             dLdA (np.array): (batch_size, in_channels, input_width)
         """
-        dLdA = None  # TODO
-        return NotImplemented
+        return dLdZ[:, :, ::self.upsampling_factor]
 
 
 class Downsample1d():
@@ -37,8 +39,9 @@ class Downsample1d():
         Return:
             Z (np.array): (batch_size, in_channels, output_width)
         """
-        Z = None  # TODO
-        return NotImplemented
+        self.A = A
+        Z = A[:, :, ::self.downsampling_factor]
+        return Z
 
     def backward(self, dLdZ):
         """
@@ -47,8 +50,10 @@ class Downsample1d():
         Return:
             dLdA (np.array): (batch_size, in_channels, input_width)
         """
-        dLdA = None  # TODO
-        return NotImplemented
+        padded_matrix = np.zeros_like(self.A)
+        padded_matrix[:, :, ::self.downsampling_factor] = dLdZ
+
+        return padded_matrix
 
 
 class Upsample2d():
@@ -62,8 +67,12 @@ class Upsample2d():
         Return:
             Z (np.array): (batch_size, in_channels, output_height, output_width)
         """
-        Z = None  # TODO
-        return NotImplemented
+        output_height = self.upsampling_factor * (A.shape[2] - 1) + 1
+        output_width = self.upsampling_factor * (A.shape[3] - 1) + 1
+        padded_matrix = np.zeros((A.shape[0], A.shape[1], output_height, output_width))
+        padded_matrix[:, :, ::self.upsampling_factor, ::self.upsampling_factor] = A
+
+        return padded_matrix
 
     def backward(self, dLdZ):
         """
@@ -72,8 +81,7 @@ class Upsample2d():
         Return:
             dLdA (np.array): (batch_size, in_channels, input_height, input_width)
         """
-        dLdA = None  # TODO
-        return NotImplemented
+        return dLdZ[:, :, ::self.upsampling_factor, ::self.upsampling_factor]
 
 
 class Downsample2d():
@@ -87,9 +95,9 @@ class Downsample2d():
         Return:
             Z (np.array): (batch_size, in_channels, output_height, output_width)
         """
-        Z = None  # TODO
-
-        return NotImplemented
+        self.A = A
+        Z = A[:, :, ::self.downsampling_factor, ::self.downsampling_factor]
+        return Z
 
     def backward(self, dLdZ):
         """
@@ -98,5 +106,7 @@ class Downsample2d():
         Return:
             dLdA (np.array): (batch_size, in_channels, input_height, input_width)
         """
-        dLdA = None  # TODO
-        return NotImplemented
+        padded_matrix = np.zeros_like(self.A)
+        padded_matrix[:, :, ::self.downsampling_factor, ::self.downsampling_factor] = dLdZ
+
+        return padded_matrix
