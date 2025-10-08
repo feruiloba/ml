@@ -53,7 +53,6 @@ class Conv1d_stride1():
         Return:
             dLdA (np.array): (batch_size, in_channels, input_size)
         """
-        dLdW_size = self.W.shape[-1]
         dLdZ_size = dLdZ.shape[-1]
 
         # A shape is (batch_size, in_channels, input_size)
@@ -65,9 +64,8 @@ class Conv1d_stride1():
 
         self.dLdb = np.sum(dLdZ, axis=(0, 2))
 
-        pad_left = int(self.kernel_size - 1)
-        pad_right = int(self.kernel_size - 1)
-        dLdZ_padded = np.pad(dLdZ, ((0,0),(0,0),(pad_left,pad_right)))
+        padding = int(self.kernel_size - 1)
+        dLdZ_padded = np.pad(dLdZ, ((0,0),(0,0),(padding,padding)))
         flipped_W = np.flip(self.W, axis=2)
 
         for i in range(self.A.shape[-1]):
