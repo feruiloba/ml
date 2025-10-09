@@ -21,10 +21,18 @@ class CNN_SimpleScanningMLP():
         # self.conv3 = ???
         # ...
         # <---------------------
-        self.conv1 = None
-        self.conv2 = None
-        self.conv3 = None
-        self.layers = [] # TODO: Add the layers in the correct order
+        # You are given a 128×24 input (128 time steps, with a 24-dimensional vector at each time)
+        self.conv1 = Conv1d(in_channels=24, out_channels=8, kernel_size=8, padding=0, stride=4)
+        self.conv2 = Conv1d(in_channels=8, out_channels=16, kernel_size=1, padding=0, stride=1)
+        self.conv3 = Conv1d(in_channels=16, out_channels=4, kernel_size=1, padding=0, stride=1)
+        self.layers = [
+            self.conv1,
+            ReLU(),
+            self.conv2,
+            ReLU(),
+            self.conv3,
+            Flatten()
+        ] # Add the layers in the correct order
 
     def init_weights(self, weights):
         """
@@ -37,15 +45,15 @@ class CNN_SimpleScanningMLP():
         # Load the weights for your CNN from the MLP Weights given
         # w1, w2, w3 contain the weights for the three layers of the MLP
         # Load them appropriately into the CNN
-        
-        # TODO: For each weight:
+
+        #  For each weight:
         #   1 : Transpose the layer's weight matrix
         #   2 : Reshape the weight into (out_channels, kernel_size, in_channels)
         #   3 : Transpose weight back into (out_channels, in_channels, kernel_size)
 
-        self.conv1.conv1d_stride1.W = None
-        self.conv2.conv1d_stride1.W = None
-        self.conv3.conv1d_stride1.W = None
+        self.conv1.conv1d_stride1.W = w1.T.reshape(self.conv1.out_channels, self.conv1.kernel_size, self.conv1.in_channels).transpose(0,2,1)
+        self.conv2.conv1d_stride1.W = w2.T.reshape(self.conv2.out_channels, self.conv2.kernel_size, self.conv2.in_channels).transpose(0,2,1)
+        self.conv3.conv1d_stride1.W = w3.T.reshape(self.conv3.out_channels, self.conv3.kernel_size, self.conv3.in_channels).transpose(0,2,1)
 
     def forward(self, A):
         """
@@ -83,10 +91,17 @@ class CNN_DistributedScanningMLP():
         # self.conv3 = ???
         # ...
         # <---------------------
-        self.conv1 = None
-        self.conv2 = None
-        self.conv3 = None
-        self.layers = [] # TODO: Add the layers in the correct order
+        self.conv1 = Conv1d(in_channels=24, out_channels=8, kernel_size=8, padding=0, stride=4)
+        self.conv2 = Conv1d(in_channels=8, out_channels=16, kernel_size=1, padding=0, stride=1)
+        self.conv3 = Conv1d(in_channels=16, out_channels=4, kernel_size=1, padding=0, stride=1)
+        self.layers = [
+            self.conv1,
+            ReLU(),
+            self.conv2,
+            ReLU(),
+            self.conv3,
+            Flatten()
+        ] # Add the layers in the correct order
 
     def __call__(self, A):
         # Do not modify this method

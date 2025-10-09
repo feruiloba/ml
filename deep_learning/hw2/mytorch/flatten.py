@@ -8,8 +8,10 @@ class Flatten():
         Return:
             Z (np.array): (batch_size, in_channels * in width)
         """
-        Z = None  # TODO
-        return NotImplemented
+        self.in_channels = A.shape[1]
+        self.in_width = A.shape[2]
+        Z = A.reshape(A.shape[0], -1)
+        return Z
 
     def backward(self, dLdZ):
         """
@@ -18,5 +20,5 @@ class Flatten():
         Return:
             dLdA (np.array): (batch size, in channels, in width)
         """
-        dLdA = None  # TODO
-        return NotImplemented
+        dLdA = dLdZ.reshape(dLdZ.shape[0], self.in_channels, self.in_width)
+        return dLdA

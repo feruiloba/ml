@@ -80,6 +80,9 @@ class Conv1d():
         # Do not modify the variable names
         self.stride = stride
         self.pad = padding
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.kernel_size = kernel_size
 
         # Initialize Conv1d() and Downsample1d() isntance
         self.conv1d_stride1 = Conv1d_stride1(in_channels, out_channels, kernel_size, weight_init_fn, bias_init_fn)
