@@ -125,10 +125,10 @@ class CNN_DistributedScanningMLP():
         #   3 : Transpose weight back into (out_channels, in_channels, kernel_size)
         #   4 : Slice the weight matrix and reduce to only the shared weights
         #   (hint: be careful, steps 1-3 are similar, but not exactly like in the simple scanning MLP)
-        
-        self.conv1.conv1d_stride1.W = None
-        self.conv2.conv1d_stride1.W = None
-        self.conv3.conv1d_stride1.W = None
+
+        self.conv1.conv1d_stride1.W = w1.T.reshape(self.conv1.out_channels, self.conv1.kernel_size, self.conv1.in_channels).transpose(0,2,1)
+        self.conv2.conv1d_stride1.W = w2.T.reshape(self.conv2.out_channels, self.conv2.kernel_size, self.conv2.in_channels).transpose(0,2,1)
+        self.conv3.conv1d_stride1.W = w2.T.reshape(self.conv2.out_channels, self.conv2.kernel_size, self.conv2.in_channels).transpose(0,2,1)
 
     def forward(self, A):
         """
