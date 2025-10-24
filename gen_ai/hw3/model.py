@@ -45,7 +45,7 @@ class CausalSelfAttention(nn.Module):
         ################################################## TODO: ##################################################
 
         # key, query, value projections for all heads, but in a batch
-        self.c_attn = LoRALinear(config.n_embd, config.n_embd, lora_rank=config.lora_rank, lora_alpha=config.lora_alpha, lora_dropout=config.lora_dropout)
+        self.c_attn = LoRALinear(config.n_embd, 3 * config.n_embd, lora_rank=config.lora_rank, lora_alpha=config.lora_alpha, lora_dropout=config.lora_dropout)
 
         # output projection
         self.c_proj = LoRALinear(config.n_embd, config.n_embd, lora_rank=config.lora_rank, lora_alpha=config.lora_alpha, lora_dropout=config.lora_dropout)
