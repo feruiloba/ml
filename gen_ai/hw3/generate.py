@@ -69,17 +69,18 @@ class ModelSampler:
             response = self.get_generation(prompt)
             pred_samples[i] = {'response': response, 'true label': row['label']}
             ################################################## TODO: ##################################################
-            truncated_response = response[:50] #TODO: Truncate response to get predicted label (hint: the response is a string which includes input prompt plus the generated label)
-            if response.startswith(prompt):
-                truncated_response = response[len(prompt):100]
-            else:
-                truncated_response = response[:50]
-
-            if truncated_response.lower().find("positive"): # TODO: Check if "positive" is in the truncated response
+            #TODO: Truncate response to get predicted label (hint: the response is a string which includes input prompt plus the generated label)
+            label = response.split("Label:")[-1].strip()
+            
+            #print(f"label: {label}")
+            if "positive" in label.lower(): # TODO: Check if "positive" is in the truncated response
+                #print(f"Predicted positive for sample {i}")
                 predicted_label = 1
-            elif truncated_response.lower().find("negative"): # Check if "negative" is in the truncated response
+            elif "negative" in label.lower(): # Check if "negative" is in the truncated response
+                #print(f"Predicted negative for sample {i}")
                 predicted_label = 0
             else:
+                #print(f"Could not determine label for sample {i}, defaulting to -1")
                 predicted_label = -1
             pred_samples[i]['predicted label'] = predicted_label
         return pred_samples
@@ -113,7 +114,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Get model accuracy from command line parameters.')
     parser.add_argument('--out_dir', type=str, help='Output directory for model checkpoints')
     parser.add_argument('--init_from', type=str, default='resume', help='Initialization method', choices=['resume', 'gpt2', "gpt2-medium", "gpt2-large", "gpt2-xl"])
-    parser.add_argument('--device', type=str, default='cuda', help='Device to use for computation')
+    parser.add_argument('--device', type=str, default='cpu', help='Device to use for computation')
     parser.add_argument('--max_new_tokens', type=int, default=5, help='Maximum new tokens to generate')
     parser.add_argument('--temperature', type=float, default=0.6, help='Temperature for generation')
     parser.add_argument('--top_k', type=int, default=1, help='Top K tokens to sample from')

@@ -50,7 +50,7 @@ class LoRALinear(nn.Linear):
     def forward(self, input: torch.Tensor) -> torch.Tensor:
         #TODO: return input after the forward pass
         #TODO: Remember to use dropout on the input before multiplying with lora_B and lora_A if the weights are not merged
-        if not self.has_weights_merged:
+        if self.is_lora() and not self.has_weights_merged:
             inputs = self.lora_dropout(input)
             weights = self.weight + self.lora_scaling * (self.lora_B @ self.lora_A)
         else:
