@@ -62,7 +62,7 @@ class LoRALinear(nn.Linear):
     def train(self, mode: bool = True) -> "LoRALinear":
         #TODO: Set the linear layer into train mode
         #Hint: Make sure to demerge LORA matrices if already merged
-        self.train = mode
+        super().train(mode)
 
         if self.is_lora() and self.has_weights_merged:
             self.weight.data = self.weight.data - self.lora_scaling * (self.lora_B @ self.lora_A)
