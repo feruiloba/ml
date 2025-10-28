@@ -71,7 +71,7 @@ class ModelSampler:
             ################################################## TODO: ##################################################
             #TODO: Truncate response to get predicted label (hint: the response is a string which includes input prompt plus the generated label)
             label = response.split("Label:")[-1].strip()
-            
+
             #print(f"label: {label}")
             if "positive" in label.lower(): # TODO: Check if "positive" is in the truncated response
                 #print(f"Predicted positive for sample {i}")
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Get model accuracy from command line parameters.')
     parser.add_argument('--out_dir', type=str, help='Output directory for model checkpoints')
     parser.add_argument('--init_from', type=str, default='resume', help='Initialization method', choices=['resume', 'gpt2', "gpt2-medium", "gpt2-large", "gpt2-xl"])
-    parser.add_argument('--device', type=str, default='cpu', help='Device to use for computation')
+    parser.add_argument('--device', type=str, default='cuda', help='Device to use for computation')
     parser.add_argument('--max_new_tokens', type=int, default=5, help='Maximum new tokens to generate')
     parser.add_argument('--temperature', type=float, default=0.6, help='Temperature for generation')
     parser.add_argument('--top_k', type=int, default=1, help='Top K tokens to sample from')
@@ -124,5 +124,3 @@ if __name__ == "__main__":
     accuracy, pos_counter, neg_counter, counter = sampler.get_accuracy()
     print(f"Best Val Checkpoint || Accuracy: {accuracy}, Positive Predictions: {pos_counter}, Negative Predictions: {neg_counter}, Correct Predictions: {counter}")
     sampler = ModelSampler(args.out_dir, args.init_from, args.device, args.max_new_tokens, args.temperature, args.top_k, ckpt_last=True)
-    accuracy, pos_counter, neg_counter, counter = sampler.get_accuracy()
-    print(f"Last Iter Checkpoint || Accuracy: {accuracy}, Positive Predictions: {pos_counter}, Negative Predictions: {neg_counter}, Correct Predictions: {counter}")
