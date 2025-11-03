@@ -1,0 +1,6 @@
+torch
+wandb
+Pillow
+torchvision
+tqdm
+transformers==4.46.3
