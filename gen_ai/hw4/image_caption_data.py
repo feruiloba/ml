@@ -7,6 +7,7 @@ import re
 import numpy as np
 import torch
 import torch.nn as nn
+from torch.nn.utils.rnn import pad_sequence
 import gc
 from PIL import Image
 from torch.utils.data import DataLoader
@@ -208,6 +209,27 @@ def prompts_to_padded_hidden_states(
     # TODO: Construct the padded hidden states
     # ====== BEGIN STUDENT SOLUTION ===========================================
     
+    if gpt2_layer_index < 0 or gpt2_layer_index >= gpt2.num_layers:
+        raise ValueError("gpt2_layer_index value invalid")
+
+    all_hidden_states = []
+
+    for index, prompt in enumerate(prompts):
+        tokens = tokenizer(prompt, return_tensors="pt")
+        input_ids = tokens["input_ids"].to(device)
+        #attention_mask = tokens.attention_mask.to(device)
+
+        # Get GPT2 hidden states
+        with torch.no_grad():
+            outputs = gpt2(input_ids=input_ids, output_hidden_states=True, prompt_index=index)
+            # Get hidden states from specified layer
+            hidden_states = outputs.hidden_states[gpt2_layer_index]
+            all_hidden_states.append(hidden_states.squeeze(0))  # Shape: [seq_len, C]
+
+    all_hidden_states = pad_sequence(all_hidden_states, batch_first=True) # Shape: [B, max_seq, C]
+    all_attention_masks = all_hidden_states[:,:,-1] != 0  # Shape: [B, max_seq], True for valid tokens
+
+    return all_hidden_states, all_attention_masks
     
     # ====== END STUDENT SOLUTION =============================================
 

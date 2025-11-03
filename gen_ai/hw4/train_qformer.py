@@ -32,6 +32,33 @@ def setup_optimizer_and_scheduler(model: DiT_Llama, args: argparse.Namespace):
     # TODO: Set the correct parameters to be trainable, set up the optimizer and scheduler, and the criterion
     # ====== BEGIN STUDENT SOLUTION ===========================================
     
+    # Freeze DiT parameters
+    for name, param in model.named_parameters():
+        if name.startswith('query_embedder.'):
+            param.requires_grad = True
+        else:
+            param.requires_grad = False
+
+    # Set up optimizer
+    optimizer = torch.optim.AdamW(
+        filter(lambda p: p.requires_grad, model.parameters()),
+        lr=args.lr,
+        weight_decay=args.weight_decay,
+        eps=args.adam_epsilon,
+        betas=(0.9, 0.95)
+    )
+
+    # Set up scheduler with linear warmup if warmup_steps > 0
+    if args.warmup_steps > 0:
+        scheduler = torch.optim.lr_scheduler.LambdaLR(
+            optimizer,
+            lambda step: min(1.0, (step + 1) / args.warmup_steps)
+        )
+    else:
+        scheduler = None
+
+    # Set up criterion
+    criterion = nn.MSELoss()
     
     # ====== END STUDENT SOLUTION =============================================
     return optimizer, scheduler, criterion
