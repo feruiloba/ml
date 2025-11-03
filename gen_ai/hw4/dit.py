@@ -102,10 +102,7 @@ class QueryEmbedder(nn.Module):
 
     def forward(self, cross_attention_states, batch_size=1, cross_attention_mask=None):
         # cross_attention_states: (batch_size, sequence_length, transformer_hidden_size)
-
-        # TODO: implement this function
         # ====== BEGIN STUDENT SOLUTION ===========================================
-        pass
     
         # First, get the set of learnable query embeddings from the query table using indices 0 to num_queries - 1
         #  Put the queries on the same device as the cross_attention_states, and expand them to shape (batch_size, num_queries, transformer_hidden_size)
@@ -121,7 +118,36 @@ class QueryEmbedder(nn.Module):
         #  Then, map the queries to the per-layer features using the query to layer linear layer, yielding a tensor of shape (batch_size, num_dit_layers, conditioning_hidden_size)
             #  NOTE: for this step, you need to change the queries to shape (batch_size, conditioning_hidden_size, num_queries) first, then apply the linear layer, and then change the shape back to shape (batch_size, num_dit_layers, conditioning_hidden_size)
         #  Finally, return the per-layer features
-        # ====== END STUDENT SOLUTION =============================================
+
+        device = cross_attention_states.device
+        
+        # Get query embeddings and expand to batch size
+        queries = self.query_table(torch.arange(self.num_queries, device=device))  # (num_queries, transformer_hidden_size)
+        queries = queries.unsqueeze(0).expand(batch_size, -1, -1)  # (batch_size, num_queries, transformer_hidden_size)
+        
+        # Process through transformer blocks
+        for block in self.blocks:
+            # Self-attention with residual connection
+            queries = queries + block.self_attn(block.attn_norm(queries))
+            
+            # Cross-attention with residual connection and text conditioning
+            queries = queries + block.cross_attn(
+                block.cross_norm(queries),
+                cross_attention_states=cross_attention_states,
+                cross_attention_mask=cross_attention_mask
+            )
+
+            # Feed-forward network with residual connection
+            queries = queries + block.ffn(block.ffn_norm(queries))
+        
+        # Project to conditioning hidden size
+        queries = self.output_proj(queries)
+        
+        # Map to per-layer features
+        layer_features = self.query_to_layer(queries.transpose(-2, -1))  # (batch_size, num_queries, num_dit_layers) 
+        layer_features = layer_features.transpose(1, 2)  # (batch_size, num_dit_layers, num_queries)
+        
+        return layer_features
 
 
 class LabelEmbedder(nn.Module):
