@@ -18,7 +18,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from dit import DiT_Llama
 from ddpm import ddpm_schedules
-from image_caption_data import get_text_captions, cache_all_text_states, CIFARTextDataset, build_text_states
+from image_caption_data import get_cifar_names, get_synonyms, get_text_captions, cache_all_text_states, CIFARTextDataset, build_text_states
 
 def setup_optimizer_and_scheduler(model: DiT_Llama, args: argparse.Namespace):
     """

@@ -209,7 +209,7 @@ def prompts_to_padded_hidden_states(
     # TODO: Construct the padded hidden states
     # ====== BEGIN STUDENT SOLUTION ===========================================
     
-    if gpt2_layer_index < 0 or gpt2_layer_index >= gpt2.num_layers:
+    if gpt2_layer_index < 0 or gpt2_layer_index >= gpt2.config.n_layer + 1:
         raise ValueError("gpt2_layer_index value invalid")
 
     all_hidden_states = []
