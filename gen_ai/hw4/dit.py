@@ -123,7 +123,7 @@ class QueryEmbedder(nn.Module):
         
         # Get query embeddings and expand to batch size
         queries = self.query_table(torch.arange(self.num_queries, device=device))  # (num_queries, transformer_hidden_size)
-        queries = queries.unsqueeze(0).expand(batch_size, -1, -1)  # (batch_size, num_queries, transformer_hidden_size)
+        queries = queries.unsqueeze(0).expand(batch_size, -1, -1).to(device)  # (batch_size, num_queries, transformer_hidden_size)
         
         # Process through transformer blocks
         for block in self.blocks:
