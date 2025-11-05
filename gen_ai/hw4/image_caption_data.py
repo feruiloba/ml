@@ -43,7 +43,7 @@ def get_synonyms():
         "ship": ["vehicle that floats"],
         "truck": ["big vehicle that drives"],
     }
-    
+
 def _maybe_apply_synonym(text: str, class_index: int, cifar10_names: List[str], synonyms: Dict[str, List[str]], prob: float) -> str:
     class_name = cifar10_names[class_index]
     if random.random() >= prob:
@@ -208,8 +208,8 @@ def prompts_to_padded_hidden_states(
     """
     # TODO: Construct the padded hidden states
     # ====== BEGIN STUDENT SOLUTION ===========================================
-    
-    if gpt2_layer_index < 0 or gpt2_layer_index >= gpt2.config.n_layer + 1:
+
+    if gpt2_layer_index < 0 or ("config" in gpt2 and gpt2_layer_index > gpt2.config.n_layer) or ("num_layers" in gpt2 and gpt2_layer_index > gpt2.num_layers):
         raise ValueError("gpt2_layer_index value invalid")
 
     all_hidden_states = []
@@ -230,7 +230,7 @@ def prompts_to_padded_hidden_states(
     all_attention_masks = all_hidden_states[:,:,-1] != 0  # Shape: [B, max_seq], True for valid tokens
 
     return all_hidden_states, all_attention_masks
-    
+
     # ====== END STUDENT SOLUTION =============================================
 
 
@@ -258,7 +258,7 @@ def build_text_states(
     else:
         assert captions_per_class is not None, "captions_per_class must be provided when idxs is not used"
 
-    
+
     prompts: List[str] = []
     if idxs is not None:
         assert index_to_captions is not None, "index_to_captions must be provided when idxs is used"
