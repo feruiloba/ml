@@ -4,7 +4,7 @@ class GreedySearchDecoder(object):
 
     def __init__(self, symbol_set):
         """
-        
+
         Initialize instance variables
 
         Argument(s)
@@ -52,9 +52,20 @@ class GreedySearchDecoder(object):
         # 4. Select most probable symbol and append to decoded_path
         # 5. Compress sequence (Inside or outside the loop)
 
-        #return decoded_path, path_prob
-        raise NotImplementedError
+        max_symbol = None
+        previous_index = None
+        for t in range(y_probs.shape[1]):
+            max_index = np.argmax(y_probs[:,t])
+            max_prob = y_probs[max_index][t]
+            path_prob *= max_prob
+            if max_index != blank and max_index != previous_index:
+                max_symbol = self.symbol_set[max_index -1]
+                previous_index = max_index
+                decoded_path.append(max_symbol)
 
+        decoded_path = ''.join(decoded_path)
+
+        return decoded_path, path_prob
 
 class BeamSearchDecoder(object):
 
@@ -79,7 +90,7 @@ class BeamSearchDecoder(object):
 
     def decode(self, y_probs):
         """
-        
+
         Perform beam search decoding
 
         Input
@@ -91,7 +102,7 @@ class BeamSearchDecoder(object):
 
         Returns
         -------
-        
+
         forward_path [str]:
             the symbol sequence with the best path score (forward probability)
 
@@ -100,7 +111,8 @@ class BeamSearchDecoder(object):
 
         """
 
-        T = y_probs.shape[1]
+        num_timesteps = y_probs.shape[1]
+        num_symbols = y_probs.shape[0]
         bestPath, FinalPathScore = None, None
 
         # TODO:
@@ -111,7 +123,57 @@ class BeamSearchDecoder(object):
         # 4. Pruning the set of paths to keep only the top 'beam_width' paths.
         # 5. After iterating through all time steps, selecting the best path
         #    and its score.
-        
-        
-        #return bestPath, FinalPathScore
-        raise NotImplementedError
+
+        def get_symbol_path(index, path=None):
+            # if the symbol is blank or the previous symbol is the same, then it's the same path
+            current_symbol = self.symbol_set[index-1] if index > 0 else '-'
+            previous_symbol = path[-1] if path != '' else ''
+
+            # collapse subsequent symbols
+            if (current_symbol == previous_symbol):
+                return ''
+
+            if (previous_symbol == '-'):
+                return previous_symbol
+
+            return current_symbol
+
+        def get_top_paths(paths_dict):
+            return dict(sorted(paths_dict.items(), key=lambda path_prob: path_prob[1], reverse=True)[:self.beam_width])
+
+        activePaths = {
+            '': 1
+        }
+
+        tempPaths = {}
+
+        for t in range(num_timesteps):
+            activePaths = get_top_paths(activePaths)
+            for path, prob in activePaths.items():
+                for s in range(num_symbols):
+                    symbol = get_symbol_path(s, path)
+                    new_path = path + symbol
+                    new_prob = prob * y_probs[s][t]
+                    if new_path in tempPaths:
+                        tempPaths[new_path] += new_prob
+                    else:
+                        tempPaths[new_path] = new_prob
+            activePaths = tempPaths
+            tempPaths = {}
+
+        bestPath = ''
+        bestProb = 0
+        mergedPaths = {}
+        for path, prob in activePaths.items():
+            path = path.strip()
+            if path in mergedPaths:
+                mergedPaths[path] += prob
+            else:
+                mergedPaths[path] = prob
+            if prob > bestProb:
+                bestPath = path
+                bestProb = prob
+
+        return bestPath, mergedPaths
+
+
