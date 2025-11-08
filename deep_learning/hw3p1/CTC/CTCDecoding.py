@@ -71,22 +71,109 @@ class BeamSearchDecoder(object):
 
     def __init__(self, symbol_set, beam_width):
         """
-
         Initialize instance variables
 
         Argument(s)
         -----------
-
         symbol_set [list[str]]:
             all the symbols (the vocabulary without blank)
 
         beam_width [int]:
             beam width for selecting top-k hypotheses for expansion
-
         """
-
         self.symbol_set = symbol_set
         self.beam_width = beam_width
+        self.blank_index = 0
+
+    def initialize_paths(self, y_t):
+            paths_blank = {""}
+            paths_symbol = set()
+            blank_path_score = {"": y_t[self.blank_index]}
+            path_score = {}
+
+            for i in range(len(self.symbol_set)):
+                symbol = self.symbol_set[i]
+                paths_symbol.add(symbol)
+                path_score[symbol] = y_t[i + 1]  # offset +1 for non-blank
+
+            return paths_blank, paths_symbol, blank_path_score, path_score
+
+    def prune(self, paths_blank, paths_symbol, blank_probs, path_probs):
+        all_scores = list(blank_probs.values()) + list(path_probs.values())
+        top_probabilities = sorted(all_scores, reverse=True)[:self.beam_width]
+        min_prob = top_probabilities[-1]
+
+        pruned_blank = set()
+        pruned_symbol = set()
+        pruned_blank_scores = {}
+        pruned_path_scores = {}
+
+        for path in paths_blank:
+            if blank_probs[path] >= min_prob:
+                pruned_blank.add(path)
+                pruned_blank_scores[path] = blank_probs[path]
+
+        for path in paths_symbol:
+            if path_probs[path] >= min_prob:
+                pruned_symbol.add(path)
+                pruned_path_scores[path] = path_probs[path]
+
+        return pruned_blank, pruned_symbol, pruned_blank_scores, pruned_path_scores
+
+    def extend_with_blank(self, paths_blank, paths_symbol, blank_probs, path_probs, y_t):
+        updated_blank = set()
+        updated_blank_scores = {}
+
+        for path in paths_blank:
+            updated_blank.add(path)
+            updated_blank_scores[path] = blank_probs[path] * y_t[self.blank_index]
+
+        for path in paths_symbol:
+
+            if path in updated_blank:
+                updated_blank_scores[path] += path_probs[path] * y_t[self.blank_index]
+            else:
+                updated_blank.add(path)
+                updated_blank_scores[path] = path_probs[path] * y_t[self.blank_index]
+
+        return updated_blank, updated_blank_scores
+
+    def merge_identical(self, paths_blank, blank_probs, paths_symbol, path_probs):
+        merged = set(paths_symbol)
+        final_probs = dict(path_probs)
+        for p in paths_blank:
+            if p in merged:
+                final_probs[p] += blank_probs[p]
+            else:
+                merged.add(p)
+                final_probs[p] = blank_probs[p]
+
+        return merged, final_probs
+
+    def extend_with_symbol(self, paths_blank, paths_symbol, blank_probs, path_probs, y_t):
+        updated_symbol = set()
+        updated_probs = {}
+
+        # Extend paths ending with blank
+        for p in paths_blank:
+            for i in range(len(self.symbol_set)):
+                new_path = p + self.symbol_set[i]
+                updated_symbol.add(new_path)
+                updated_probs[new_path] = blank_probs[p] * y_t[i + 1]
+
+        # Extend paths ending with symbols
+        for p in paths_symbol:
+            for i in range(len(self.symbol_set)):
+                symbol = self.symbol_set[i]
+                new_path = p if symbol == p[-1] else p + symbol
+
+                if new_path in updated_symbol:
+                    updated_probs[new_path] += path_probs[p] * y_t[i + 1]
+                else:
+                    updated_symbol.add(new_path)
+                    updated_probs[new_path] = path_probs[p] * y_t[i + 1]
+
+        return updated_symbol, updated_probs
 
     def decode(self, y_probs):
         """
@@ -110,10 +197,7 @@ class BeamSearchDecoder(object):
             all the final merged paths with their scores
 
         """
-
-        num_timesteps = y_probs.shape[1]
-        num_symbols = y_probs.shape[0]
-        bestPath, FinalPathScore = None, None
+        T = y_probs.shape[1]
 
         # TODO:
         # Implement the beam search decoding algorithm. This typically involves:
@@ -124,56 +208,27 @@ class BeamSearchDecoder(object):
         # 5. After iterating through all time steps, selecting the best path
         #    and its score.
 
-        def get_symbol_path(index, path=None):
-            # if the symbol is blank or the previous symbol is the same, then it's the same path
-            current_symbol = self.symbol_set[index-1] if index > 0 else '-'
-            previous_symbol = path[-1] if path != '' else ''
+        paths_blank, paths_symbol, blank_probs, path_probs = self.initialize_paths(y_probs[:, 0])
 
-            # collapse subsequent symbols
-            if (current_symbol == previous_symbol):
-                return ''
+        for t in range(1, T):
+            paths_blank, paths_symbol, blank_probs, path_probs = self.prune(
+                paths_blank, paths_symbol, blank_probs, path_probs
+            )
 
-            if (previous_symbol == '-'):
-                return previous_symbol
+            new_blank, new_blank_probs = self.extend_with_blank(
+                paths_blank, paths_symbol, blank_probs, path_probs, y_probs[:, t]
+            )
 
-            return current_symbol
+            new_symbol, new_symbol_scores = self.extend_with_symbol(
+                paths_blank, paths_symbol, blank_probs, path_probs, y_probs[:, t]
+            )
 
-        def get_top_paths(paths_dict):
-            return dict(sorted(paths_dict.items(), key=lambda path_prob: path_prob[1], reverse=True)[:self.beam_width])
+            paths_blank = new_blank
+            paths_symbol = new_symbol
+            blank_probs = new_blank_probs
+            path_probs = new_symbol_scores
 
-        activePaths = {
-            '': 1
-        }
+        merged_paths, final_scores = self.merge_identical(paths_blank, blank_probs, paths_symbol, path_probs)
 
-        tempPaths = {}
-
-        for t in range(num_timesteps):
-            activePaths = get_top_paths(activePaths)
-            for path, prob in activePaths.items():
-                for s in range(num_symbols):
-                    symbol = get_symbol_path(s, path)
-                    new_path = path + symbol
-                    new_prob = prob * y_probs[s][t]
-                    if new_path in tempPaths:
-                        tempPaths[new_path] += new_prob
-                    else:
-                        tempPaths[new_path] = new_prob
-            activePaths = tempPaths
-            tempPaths = {}
-
-        bestPath = ''
-        bestProb = 0
-        mergedPaths = {}
-        for path, prob in activePaths.items():
-            path = path.strip()
-            if path in mergedPaths:
-                mergedPaths[path] += prob
-            else:
-                mergedPaths[path] = prob
-            if prob > bestProb:
-                bestPath = path
-                bestProb = prob
-
-        return bestPath, mergedPaths
-
-
+        best_path = max(final_scores, key=final_scores.get)
+        return best_path, final_scores
