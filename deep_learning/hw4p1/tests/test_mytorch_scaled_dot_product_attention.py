@@ -1,6 +1,13 @@
 import torch
 import numpy as np
+import sys
+from pathlib import Path
 from torch.nn.functional import scaled_dot_product_attention as PytorchScaledDotProductAttention
+
+# Add project root
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 from mytorch.nn.scaled_dot_product_attention import ScaledDotProductAttention as MytorchScaledDotProductAttention
 
 
@@ -35,18 +42,18 @@ def test_scaled_dot_product_attention_forward():
         query = torch.randn(shape)
         key   = torch.randn(shape)
         value = torch.randn(shape)
-        
+
         # Ceate a mask
         mask = torch.ones(shape[:-2] + (seq_len, seq_len)).bool()
-        
+
         # Get outputs from both implementations
         pytorch_output = PytorchScaledDotProductAttention(
             query, key, value, attn_mask=mask
         )
-        
+
         mytorch_attention = MytorchScaledDotProductAttention()
         mytorch_output = mytorch_attention.forward(query.numpy(), key.numpy(), value.numpy(), mask=~mask.numpy())
-        
+
         # Compare outputs
         assert  np.allclose(pytorch_output.numpy(), mytorch_output, rtol=1e-4, atol=1e-4), \
             f"Outputs don't match for case: {shape}"
@@ -74,10 +81,10 @@ def test_scaled_dot_product_attention_backward():
         query = torch.randn(shape, requires_grad=True)
         key   = torch.randn(shape, requires_grad=True)
         value = torch.randn(shape, requires_grad=True)
-        
+
         # # Ceate a mask
         mask = torch.ones(shape[:-2] + (seq_len, seq_len)).bool()
-        
+
         # Forward pass with PyTorch
         pytorch_output = PytorchScaledDotProductAttention(
             query, key, value, attn_mask=mask
@@ -88,19 +95,19 @@ def test_scaled_dot_product_attention_backward():
         pytorch_dQ = query.grad.detach().numpy()
         pytorch_dK = key.grad.detach().numpy()
         pytorch_dV = value.grad.detach().numpy()
-        
+
         # Forward pass with MyTorch
         mytorch_attention = MytorchScaledDotProductAttention()
         mytorch_output = mytorch_attention.forward(
-            query.detach().numpy(), 
-            key.detach().numpy(), 
-            value.detach().numpy(), 
+            query.detach().numpy(),
+            key.detach().numpy(),
+            value.detach().numpy(),
             mask=~mask.numpy()
         )
-        
-        # Backward pass with with np.ones_like since gradient of .sum() wrt to input is 1    
+
+        # Backward pass with with np.ones_like since gradient of .sum() wrt to input is 1
         mytorch_dQ, mytorch_dK, mytorch_dV = mytorch_attention.backward(np.ones_like(mytorch_output))
-        
+
         # Compare gradients
         assert np.allclose(pytorch_dQ, mytorch_dQ, rtol=1e-4, atol=1e-4), \
             f"Query gradients don't match for case: {shape}"
@@ -110,3 +117,6 @@ def test_scaled_dot_product_attention_backward():
             f"Value gradients don't match for case: {shape}"
 
     print("Test Passed: Scaled Dot Product Attention Backward")
+
+if __name__ == "__main__":
+    test_scaled_dot_product_attention()

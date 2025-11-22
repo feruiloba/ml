@@ -125,8 +125,8 @@ Follow the setup instructions based on your preferred environment!
 
 ### Local
 
-One of our key goals in designing this assignment is to allow you to complete most of the preliminary implementation work locally.  
-We highly recommend that you **pass all tests locally** using the provided `hw4_data_subset` before moving to a GPU runtime.  
+One of our key goals in designing this assignment is to allow you to complete most of the preliminary implementation work locally.
+We highly recommend that you **pass all tests locally** using the provided `hw4_data_subset` before moving to a GPU runtime.
 To do this, simply:
 
 #### Step 1: Create a new conda environment
@@ -278,18 +278,18 @@ Simply set the `Environment` setting in the notebook to `Always use latest envir
 
 ### Step 3: Obtain Data
 
-#### ⚠️ Important: Kaggle Users  
+#### ⚠️ Important: Kaggle Users
 If you are using Kaggle, **do not manually download the data!** The dataset is large and may exceed your available disk space. Instead, follow these steps to add the dataset directly to your notebook:
 
-1. Open your **Kaggle Notebook**.  
-2. Navigate to **Notebook → Input**.  
-3. Click **Add Input**.  
-4. In the search bar, paste the following URL:  
-   👉 [https://www.kaggle.com/datasets/cmu11785/f25-11785-hw4-data](https://www.kaggle.com/datasets/cmu11785/f25-11785-hw4-data)  
-5. Click the **➕ (plus sign)** to add the dataset to your notebook.  
+1. Open your **Kaggle Notebook**.
+2. Navigate to **Notebook → Input**.
+3. Click **Add Input**.
+4. In the search bar, paste the following URL:
+   👉 [https://www.kaggle.com/datasets/cmu11785/f25-11785-hw4-data](https://www.kaggle.com/datasets/cmu11785/f25-11785-hw4-data)
+5. Click the **➕ (plus sign)** to add the dataset to your notebook.
 
-#### 📌 Note:  
-This process will automatically download and unzip data for both `HW4P1` and `HW4P2`.  
+#### 📌 Note:
+This process will automatically download and unzip data for both `HW4P1` and `HW4P2`.
 
 
 #### Step 4: Move to Handout Directory
@@ -357,7 +357,7 @@ Next, choose `"/Users/<your_username>/.ssh/config"` as the config file. A dialog
 4) You can now drag your notebook files directly into the right-hand pane (your remote home directory), or upload them using `scp` into your folder.
 
 ❗️⚠️ The following steps should be executed in the **VSCode integrated terminal**.
- 
+
 #### **2. Navigate to Your Directory**
 Make sure to use this `/jet/home/<your_username>` as your working directory, since all subsequent operations (up to submission) are based on this path.
 ```bash
@@ -388,7 +388,7 @@ jupyter notebook --no-browser --ip=0.0.0.0
 
 Go to **Kernel** → **Select Another Kernel** → **Existing Jupyter Server**
    Enter the URL of the Jupyter Server:```http://{hostname}:{port}/tree?token={token}```
-   
+
    *(Usually, this URL appears in the terminal output after you run `jupyter notebook --no-browser --ip=0.0.0.0`, in a line like:  “Jupyter Server is running at: http://...”)*
 
    - eg: `http://v011.ib.bridges2.psc.edu:8888/tree?token=e4b302434e68990f28bc2b4ae8d216eb87eecb7090526249`

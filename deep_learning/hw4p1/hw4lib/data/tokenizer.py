@@ -3,13 +3,13 @@ from tokenizers import Tokenizer, decoders, processors
 
 '''
 Specification:
-You will be splitting each text transcript into tokenized text, which will then serve as inputs to your model. 
-Additionally, you will need a method to convert the tokenized text back to its original form during inference or generation. 
-Character-level tokenization is straightforward, while subword tokenization involves splitting a word into subwords rather than characters. 
-The specific algorithm used for subword tokenization is [Byte Pair Encoding (BPE)](https://arxiv.org/pdf/1508.07909). 
+You will be splitting each text transcript into tokenized text, which will then serve as inputs to your model.
+Additionally, you will need a method to convert the tokenized text back to its original form during inference or generation.
+Character-level tokenization is straightforward, while subword tokenization involves splitting a word into subwords rather than characters.
+The specific algorithm used for subword tokenization is [Byte Pair Encoding (BPE)](https://arxiv.org/pdf/1508.07909).
 Part of the assignment will involve exploring these different tokenization strategies to assess their impact on your model's performance.
 
-The H4Tokenizer class provides tokenization functionality for the homework. 
+The H4Tokenizer class provides tokenization functionality for the homework.
 
 
 1. Tokenizer Types:
@@ -70,7 +70,7 @@ class H4Tokenizer:
             token_map: Maps token types to tokenizer file paths
             token_type: Type of tokenizer to load
             validate: Whether to validate the tokenizer
-        
+
         Raises:
             ValueError: If invalid token_type provided
         """
@@ -92,13 +92,13 @@ class H4Tokenizer:
 
         # Load special token IDs
         self.pad_id   = self.tokenizer.token_to_id("[PAD]")
-        self.unk_id   = self.tokenizer.token_to_id("[UNK]") 
+        self.unk_id   = self.tokenizer.token_to_id("[UNK]")
         self.mask_id  = self.tokenizer.token_to_id("[MASK]")
         self.sos_id   = self.tokenizer.token_to_id("[SOS]")
         self.eos_id   = self.tokenizer.token_to_id("[EOS]")
         self.blank_id = self.tokenizer.token_to_id("[BLANK]")
 
-        if validate:    
+        if validate:
             self._validate_tokenizer()
 
     def tokenize(self, text: str) -> List[str]:
@@ -144,11 +144,11 @@ class H4Tokenizer:
         """
         test_text = "[SOS]HI DEEP LEARNERS[EOS]"
         tokens    = self.tokenize(test_text)
-        ids       = self.encode(test_text) 
+        ids       = self.encode(test_text)
         decoded   = self.decode(ids)
 
         print("="*80)
-        title = f"Tokenizer Configuration ({self.token_type})" 
+        title = f"Tokenizer Configuration ({self.token_type})"
         print(f"{title:^80}")
         print("-"*80)
         print(f"{'Vocabulary size:':<20} {self.tokenizer.get_vocab_size()}")
@@ -180,10 +180,10 @@ class H4Tokenizer:
         """
         decoded_text = self.decode(token_ids, skip_special_tokens=skip_special_tokens)
         if skip_special_tokens:
-            token_count = sum(1 for id in token_ids if id not in 
-                             [self.pad_id, self.unk_id, self.mask_id, 
+            token_count = sum(1 for id in token_ids if id not in
+                             [self.pad_id, self.unk_id, self.mask_id,
                               self.sos_id, self.eos_id, self.blank_id])
         else:
             token_count = len(token_ids)
-        
+
         return len(decoded_text) / token_count if token_count > 0 else 0

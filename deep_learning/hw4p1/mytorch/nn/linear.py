@@ -10,6 +10,8 @@ class Linear:
         # DO NOT MODIFY
         self.W = np.zeros((out_features, in_features))
         self.b = np.zeros(out_features)
+        self.out_features = out_features
+        self.in_features = in_features
 
 
     def init_weights(self, W, b):
@@ -24,15 +26,17 @@ class Linear:
         """
         :param A: Input to the linear layer with shape (*, in_features)
         :return: Output Z with shape (*, out_features)
-        
+
         Handles arbitrary batch dimensions like PyTorch
         """
-        # TODO: Implement forward pass
-        
+
         # Store input for backward pass
         self.A = A
-        
-        raise NotImplementedError
+        self.N = A.shape[0]
+
+        Z = self.A @ self.W.T + self.b.T
+
+        return Z
 
     def backward(self, dLdZ):
         """
@@ -42,10 +46,11 @@ class Linear:
         # TODO: Implement backward pass
 
         # Compute gradients (refer to the equations in the writeup)
-        self.dLdA = NotImplementedError
-        self.dLdW = NotImplementedError
-        self.dLdb = NotImplementedError
-        self.dLdA = NotImplementedError
-        
+        dLdZ = np.reshape(dLdZ, (-1, self.out_features))
+        A = np.reshape(self.A, (-1, self.in_features))
+        self.dLdA = dLdZ @ self.W
+        self.dLdW = dLdZ.T @ A
+        self.dLdb = dLdZ.sum(axis=0)
+
         # Return gradient of loss wrt input
-        raise NotImplementedError
+        return np.reshape(self.dLdA, self.A.shape)

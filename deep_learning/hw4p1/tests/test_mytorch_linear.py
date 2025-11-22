@@ -1,6 +1,12 @@
+from pathlib import Path
+import sys
 import torch
 import numpy as np
 from torch.nn import Linear as PytorchLinear
+
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 from mytorch.nn.linear import Linear as MytorchLinear
 
 def test_linear():
@@ -16,7 +22,7 @@ def test_linear_forward():
     """
     Test the Linear layer's forward pass
     """
-    
+
     # Set the seed for reproducibility
     torch.manual_seed(11785)
     num_tests = 5
@@ -50,7 +56,7 @@ def test_linear_backward():
     """
     Test the Linear layer's backward pass
     """
-    
+
     # Set the seed for reproducibility
     torch.manual_seed(11785)
     np.random.seed(11785)
@@ -66,7 +72,7 @@ def test_linear_backward():
         # Initialize both implementations
         pytorch_linear = PytorchLinear(in_features, out_features)
         mytorch_linear = MytorchLinear(in_features, out_features)
-        
+
         # Copy weights from PyTorch to MyTorch implementation
         mytorch_linear.init_weights(pytorch_linear.weight.detach().numpy(), pytorch_linear.bias.detach().numpy())
 
@@ -93,3 +99,6 @@ def test_linear_backward():
             f"Bias gradients don't match for shape: batch_size={batch_size}, seq_len={seq_len}, in_features={in_features}, out_features={out_features}"
 
     print("Test Passed: Linear Backward")
+
+if __name__ == "__main__":
+    test_linear()
