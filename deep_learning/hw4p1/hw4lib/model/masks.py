@@ -1,6 +1,6 @@
 import torch
 
-''' 
+'''
 TODO: Implement this function.
 
 Specification:
@@ -15,20 +15,23 @@ Specification:
 - Mask should be on same device as input tensor
 '''
 def PadMask(padded_input, input_lengths):
-    """ 
-    Create a mask to identify non-padding positions. 
+    """
+    Create a mask to identify non-padding positions.
     Args:
         padded_input: The input tensor with padding, shape (N, T, ...) or (N, T).
         input_lengths: The actual lengths of each sequence before padding, shape (N,).
     Returns:
-        A boolean mask tensor with shape (N, T), where: 
-            - padding positions are marked with True 
+        A boolean mask tensor with shape (N, T), where:
+            - padding positions are marked with True
             - non-padding positions are marked with False.
     """
-    # TODO: Implement PadMask
-    raise NotImplementedError # Remove once implemented
+    N, T = padded_input.shape[0], padded_input.shape[1]
+    device = padded_input.device
+    mask = torch.arange(T, device=device).expand(N, T) >= input_lengths.unsqueeze(1)
 
-''' 
+    return mask
+
+'''
 TODO: Implement this function.
 
 Specification:
@@ -41,16 +44,19 @@ Specification:
 - Mask should be upper triangular (excluding diagonal)
 '''
 def CausalMask(padded_input):
-    """ 
-    Create a mask to identify non-causal positions. 
+    """
+    Create a mask to identify non-causal positions.
     Args:
         padded_input: The input tensor with padding, shape (N, T, ...) or (N, T).
-    
+
     Returns:
-        A boolean mask tensor with shape (T, T), where: 
-            - non-causal positions (don't attend to) are marked with True 
+        A boolean mask tensor with shape (T, T), where:
+            - non-causal positions (don't attend to) are marked with True
             - causal positions (can attend to) are marked with False.
     """
-    # TODO: Implement CausalMask
-    raise NotImplementedError # Remove once implemented
+    T = padded_input.shape[1]
+    device = padded_input.device
+    mask = torch.triu(torch.ones((T, T), device=device), diagonal=1).bool()
+
+    return mask
 
