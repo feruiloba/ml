@@ -15,9 +15,9 @@ class LMTrainer(BaseTrainer):
     2. Validation loop for model evaluation
     3. Generation capabilities with different decoding strategies
 
-    You only need to fill in the TODOs in the code. 
+    You only need to fill in the TODOs in the code.
     Please do not modify any other code without understanding what you are doing.
-    
+
     Implementation Tasks:
     - TODO: Initialize the criterion in __init__
     - TODO: Implement key parts of the training loop in _train_epoch
@@ -28,19 +28,19 @@ class LMTrainer(BaseTrainer):
     Implementation Notes:
     1. For __init__:
         - Initialize CrossEntropyLoss with appropriate padding index and label smoothing
-        
+
     2. For _train_epoch:
         - Unpack the batch (shifted inputs, golden targets, lengths)
         - Get model predictions and attention weights
         - Calculate loss
-        
+
     3. For _validate_epoch:
         - Similar to _train_epoch but without gradient calculations
         - Use torch.inference_mode() for validation
-        
+
     4. For train:
         - Implement the epoch loop with training and validation and generation
-        
+
     5. For generate:
         - Use the greedy decoding method you implemented in SequenceGenerator
         - Post-process sequences using appropriate tokenizer methods
@@ -51,7 +51,7 @@ class LMTrainer(BaseTrainer):
         super().__init__(model, tokenizer, config, run_name, config_file, device)
         # TODO: Implement the __init__ method
         # TODO: Initialize the criterion
-        # How would you set the ignore_index? 
+        # How would you set the ignore_index?
         # Use value in config to set the label_smoothing argument
         self.criterion = NotImplementedError
         raise NotImplementedError # Remove once implemented
@@ -59,7 +59,7 @@ class LMTrainer(BaseTrainer):
     def _train_epoch(self, dataloader) -> Tuple[Dict[str, float], Dict[str, torch.Tensor]]:
         """
         Train for one epoch.
-        
+
         Args:
             dataloader: DataLoader for training data
         Returns:
@@ -67,8 +67,7 @@ class LMTrainer(BaseTrainer):
         """
 
         # TODO: In-fill the _train_epoch method
-        raise NotImplementedError # Remove once implemented
-        
+
         # Initialize training variables
         self.model.train()
         batch_bar = tqdm(total=len(dataloader), dynamic_ncols=True, leave=False, position=0, desc=f"[Training LM]")
@@ -82,19 +81,24 @@ class LMTrainer(BaseTrainer):
             # TODO: Unpack batch from the dataloader
             # TODO: Move the batch elements to self.device
             targets_shifted, targets_golden, lengths = batch
-        
+            targets_shifted = targets_shifted.to(self.device)
+            targets_golden = targets_golden.to(self.device)
+            lengths = lengths.to(self.device)
 
             with torch.autocast(device_type=self.device, dtype=torch.float16):
 
                 # TODO: Get raw logits and attention weights from model
-                raw_preds, attn_weights = NotImplementedError
+                raw_preds, attn_weights = self.model(targets_shifted, lengths)
 
                 # TODO: Calculate raw loss first
-                # What is the shape of raw_preds and targets_golden? 
+                # What is the shape of raw_preds and targets_golden?
                 # Would you need to change the shape of the inputs to the criterion?
                 # Hint: See the documentation for CrossEntropyLoss
-                raw_loss = NotImplementedError
-                
+                raw_loss = nn.CrossEntropyLoss(
+                    raw_preds.view(-1, raw_preds.size(-1)),
+                    targets_golden.view(-1)
+                )
+
             # Calculate metrics with raw loss (DO NOT MODIFY THIS)
             batch_tokens = lengths.sum().item()
             total_tokens += batch_tokens
@@ -102,10 +106,11 @@ class LMTrainer(BaseTrainer):
 
             # Normalize loss for gradient accumulation
             loss = raw_loss / self.config['training']['gradient_accumulation_steps']
-            
+
             # TODO: Backpropagate the loss
-            self.scaler = NotImplementedError
-        
+            self.scaler = nn.GradScaler()
+            self.scaler.scale(loss).backward()
+
             # Only update weights after accumulating enough gradients
             if (i + 1) % self.config['training']['gradient_accumulation_steps'] == 0:
                 self.scaler.step(self.optimizer)
@@ -151,12 +156,12 @@ class LMTrainer(BaseTrainer):
             'perplexity_token': avg_perplexity_token.item(),
             'perplexity_char': avg_perplexity_char.item()
         }, attn_weights
-            
-            
+
+
     def _validate_epoch(self, dataloader):
         """
         Validate for one epoch.
-        
+
         Args:
             dataloader: DataLoader for validation data
         Returns:
@@ -165,8 +170,6 @@ class LMTrainer(BaseTrainer):
 
         # TODO: In-fill the _validate_epoch method
 
-        raise NotImplementedError # Remove once implemented
-        
         # Initialize validation variables
         self.model.eval()
         batch_bar = tqdm(total=len(dataloader), dynamic_ncols=True, leave=False, position=0, desc=f"[Validating LM]")
@@ -177,17 +180,23 @@ class LMTrainer(BaseTrainer):
             # TODO: Unpack batch
             # TODO: Move the batch elements to self.device
             targets_shifted, targets_golden, lengths = batch
+            targets_shifted = targets_shifted.to(self.device)
+            targets_golden = targets_golden.to(self.device)
+            lengths = lengths.to(self.device)
 
             # Forward pass
             with torch.inference_mode():
                 # TODO: Get raw predictions and attention weights from model
-                raw_preds, attn_weights = NotImplementedError
+                raw_preds, attn_weights = self.model(targets_shifted, lengths)
 
                 # TODO: Calculate loss
-                # What is the shape of raw_preds and targets_golden? 
+                # What is the shape of raw_preds and targets_golden?
                 # Would you need to change the shape of the inputs to the criterion?
                 # Hint: See the documentation for CrossEntropyLoss
-                loss = NotImplementedError
+                loss = self.criterion(
+                    raw_preds.view(-1, raw_preds.size(-1)),
+                    targets_golden.view(-1)
+                )
 
             # Calculate metrics
             batch_tokens = lengths.sum().item()
@@ -220,12 +229,12 @@ class LMTrainer(BaseTrainer):
             'perplexity_token': avg_perplexity_token.item(),
             'perplexity_char': avg_perplexity_char.item()
         }, attn_weights
-        
+
 
     def train(self, train_dataloader, val_dataloader, epochs: int):
         """
         Full training loop for language model training.
-        
+
         Args:
             train_dataloader: DataLoader for training data
             val_dataloader: DataLoader for validation data
@@ -233,27 +242,26 @@ class LMTrainer(BaseTrainer):
         """
         if self.scheduler is None:
             raise ValueError("Scheduler is not initialized, initialize it first!")
-        
+
         if self.optimizer is None:
             raise ValueError("Optimizer is not initialized, initialize it first!")
-        
+
         # TODO: In-fill the train method
-        raise NotImplementedError # Remove once implemented
 
         # Training loop
         best_val_loss = float('inf')
 
         for epoch in range(self.current_epoch, self.current_epoch + epochs):
-            
+
             # TODO: Train for one epoch
-            train_metrics, train_attn = NotImplementedError
-            
+            train_metrics, train_attn = self._train_epoch(train_dataloader)
+
             # TODO: Validate
-            val_metrics, val_attn = NotImplementedError
+            val_metrics, val_attn = self._validate_epoch(val_dataloader)
 
             # TODO: Generate with the validation set
-            gen_results = NotImplementedError
-            
+            gen_results = self.generate(val_dataloader)
+
             # Step ReduceLROnPlateau scheduler with validation loss
             if isinstance(self.scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
                 self.scheduler.step(val_metrics['ce_loss_char'])
@@ -264,7 +272,7 @@ class LMTrainer(BaseTrainer):
                 'val': val_metrics
             }
             self._log_metrics(metrics, epoch)
-            
+
             # Save attention plots
             train_attn_keys = list(train_attn.keys())
             val_attn_keys = list(val_attn.keys())
@@ -276,7 +284,7 @@ class LMTrainer(BaseTrainer):
 
             # Save checkpoints
             self.save_checkpoint('checkpoint-last-epoch-model.pth')
-            
+
             # Check if this is the best model
             val_loss = val_metrics['ce_loss_char']
             if val_loss < best_val_loss:
@@ -290,7 +298,7 @@ class LMTrainer(BaseTrainer):
     def evaluate(self, test_dataloader):
         """
         Evaluate the model on the test set.
-        
+
         Args:
             test_dataloader: DataLoader for test data
         Returns:
@@ -304,7 +312,7 @@ class LMTrainer(BaseTrainer):
         metrics = {
             'test': test_metrics
         }
-        self._log_metrics(metrics, self.current_epoch)  
+        self._log_metrics(metrics, self.current_epoch)
 
         # Save attention plots
         test_attn_keys = list(test_attn.keys())
@@ -326,7 +334,7 @@ class LMTrainer(BaseTrainer):
     def generate(self, dataloader, generation_config: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         """
         Evaluate the model by generating sequences from prompts.
-        
+
         Args:
             dataloader: DataLoader containing the evaluation data
             generation_config: Optional dictionary containing generation parameters:
@@ -346,7 +354,6 @@ class LMTrainer(BaseTrainer):
         # TODO: In-fill the generate method
         # You just need to implement the greedy search generation
         # See the TODO below
-        raise NotImplementedError # Remove once implemented
 
         if generation_config is None:
             # Greedy search (default)
@@ -359,7 +366,7 @@ class LMTrainer(BaseTrainer):
                 'beam_width': 1,
                 'repeat_penalty': 1.0,
                 'top_k': 0,
-                'top_p': 0.0    
+                'top_p': 0.0
             }
 
         # Create sequence generator
@@ -383,8 +390,14 @@ class LMTrainer(BaseTrainer):
         with torch.inference_mode():
             if generation_config.get('top_k', 0) > 0 or generation_config.get('top_p', 0) > 0:
                 print("Generating with sampling...")
-                seqs, scores = NotImplementedError, NotImplementedError
-                raise NotImplementedError # Remove if you implemented the sampling method
+                seqs, scores = self.sequence_generator.generate_sample(
+                    prompts,
+                    max_length=generation_config['max_length'],
+                    temperature=generation_config['temperature'],
+                    repeat_penalty=generation_config['repeat_penalty'],
+                    top_k=generation_config['top_k'],
+                    top_p=generation_config['top_p']
+                )
             elif generation_config.get('beam_width', 1) > 1:
                 print("Generating with beam search...")
                 seqs, scores = NotImplementedError, NotImplementedError
@@ -395,8 +408,10 @@ class LMTrainer(BaseTrainer):
             else:
                 # TODO: Use the prompts and the generate_greedy method you implemented in the SequenceGenerator class to generate sequences
                 print("Generating with greedy search...")
-                seqs, scores = NotImplementedError, NotImplementedError
-                raise NotImplementedError # Remove if you implemented the greedy search method
+                seqs, scores = self.sequence_generator.generate_greedy(
+                    prompts,
+                    max_length=generation_config['max_length']
+                )
 
         # Post-process sequences (trim upto EOS token)
         processed_seqs = generator.post_process_sequence(seqs, self.tokenizer)
@@ -422,7 +437,7 @@ class LMTrainer(BaseTrainer):
     def _get_evaluation_generation_configs(self) -> Dict[str, Dict[str, Any]]:
         """
         Get a list of generation configurations for evaluation.
-        
+
         Returns:
             Dictionary containing generation configurations
         """
@@ -432,7 +447,7 @@ class LMTrainer(BaseTrainer):
             'seed': 11785,
             'max_length': self.model.max_len,
         }
-        
+
         greedy_config = common_config.copy()
         greedy_config.update({
             'temperature': 1.0,
@@ -441,7 +456,7 @@ class LMTrainer(BaseTrainer):
             'top_k': 0,
             'top_p': 0.0
         })
-        
+
         beam_config = common_config.copy()
         beam_config.update({
             'temperature': 1.0,
@@ -459,7 +474,7 @@ class LMTrainer(BaseTrainer):
             'top_k': 10,
             'top_p': 0.95
         })
-        
+
         return {
             'greedy': greedy_config,
             'beam': beam_config,
