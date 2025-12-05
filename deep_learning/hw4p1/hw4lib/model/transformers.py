@@ -343,7 +343,7 @@ class EncoderDecoderTransformer(nn.Module):
         x_enc = self.dropout(x_enc)
 
         # TODO: Create source padding mask on the same device as the input
-        pad_mask_src = PadMask(padded_sources, source_lengths)
+        pad_mask_src = PadMask(x_enc, x_enc_lengths).to(padded_sources.device)
 
         # TODO: Pass through encoder layers and save attention weights
         running_att = {}
@@ -352,7 +352,7 @@ class EncoderDecoderTransformer(nn.Module):
             if self.training and self.layer_drop_rate > 0 and random.random() < self.layer_drop_rate:
                 continue
             # TODO: Pass through encoder layer
-            x_enc, attention = self.enc_layers[i](x_enc, pad_mask_src)
+            x_enc, attention = self.enc_layers[i](x_enc, key_padding_mask=pad_mask_src)
 
             # Save attention weights
             running_att[f'layer{i+1}_enc_self'] = attention
@@ -394,7 +394,7 @@ class EncoderDecoderTransformer(nn.Module):
             warnings.warn("pad_mask_tgt is None, unless you are using the decoder as a standalone model or doing inference, you should provide target_lengths")
 
         # TODO: Create causal mask on the same device as the input
-        causal_mask = CausalMask(padded_targets.size(1)).to(padded_targets.device)
+        causal_mask = CausalMask(padded_targets).to(padded_targets.device)
 
         # TODO: Apply the embedding, positional encoding, and dropout
         x_dec = self.target_embedding(padded_targets)
@@ -413,7 +413,13 @@ class EncoderDecoderTransformer(nn.Module):
             if self.training and self.layer_drop_rate > 0 and random.random() < self.layer_drop_rate:
                 continue
             # TODO: Pass through decoder layer
-            x_dec, self_attn, cross_attn = NotImplementedError, NotImplementedError, NotImplementedError
+            x_dec, self_attn, cross_attn = self.dec_layers[i](
+                x_dec,
+                encoder_output,
+                enc_key_padding_mask=pad_mask_src,
+                dec_key_padding_mask=pad_mask_tgt,
+                attn_mask=causal_mask
+            )
 
             # TODO: Save attention weights
             running_att[f'layer{i+1}_dec_self'] = self_attn
@@ -423,7 +429,7 @@ class EncoderDecoderTransformer(nn.Module):
         x_dec = self.decoder_norm(x_dec)
 
         # TODO: Final projection
-        seq_out = self.output_projection(x_dec)
+        seq_out = self.final_linear(x_dec)
 
         # TODO: Return the output sequence and running attention weights
         return seq_out, running_att
