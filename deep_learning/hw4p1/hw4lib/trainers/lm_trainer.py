@@ -53,8 +53,10 @@ class LMTrainer(BaseTrainer):
         # TODO: Initialize the criterion
         # How would you set the ignore_index?
         # Use value in config to set the label_smoothing argument
-        self.criterion = NotImplementedError
-        raise NotImplementedError # Remove once implemented
+        self.criterion = nn.CrossEntropyLoss(
+            ignore_index=self.tokenizer.pad_id,
+            label_smoothing=self.config['training'].get('label_smoothing', 0.0)
+        )
 
     def _train_epoch(self, dataloader) -> Tuple[Dict[str, float], Dict[str, torch.Tensor]]:
         """
@@ -94,7 +96,7 @@ class LMTrainer(BaseTrainer):
                 # What is the shape of raw_preds and targets_golden?
                 # Would you need to change the shape of the inputs to the criterion?
                 # Hint: See the documentation for CrossEntropyLoss
-                raw_loss = nn.CrossEntropyLoss(
+                raw_loss = self.criterion(
                     raw_preds.view(-1, raw_preds.size(-1)),
                     targets_golden.view(-1)
                 )
@@ -108,7 +110,7 @@ class LMTrainer(BaseTrainer):
             loss = raw_loss / self.config['training']['gradient_accumulation_steps']
 
             # TODO: Backpropagate the loss
-            self.scaler = nn.GradScaler()
+            self.scaler = torch.cuda.amp.GradScaler()
             self.scaler.scale(loss).backward()
 
             # Only update weights after accumulating enough gradients
@@ -390,9 +392,8 @@ class LMTrainer(BaseTrainer):
         with torch.inference_mode():
             if generation_config.get('top_k', 0) > 0 or generation_config.get('top_p', 0) > 0:
                 print("Generating with sampling...")
-                seqs, scores = self.sequence_generator.generate_sample(
+                seqs, scores = generator.generate_sample(
                     prompts,
-                    max_length=generation_config['max_length'],
                     temperature=generation_config['temperature'],
                     repeat_penalty=generation_config['repeat_penalty'],
                     top_k=generation_config['top_k'],
@@ -408,9 +409,10 @@ class LMTrainer(BaseTrainer):
             else:
                 # TODO: Use the prompts and the generate_greedy method you implemented in the SequenceGenerator class to generate sequences
                 print("Generating with greedy search...")
-                seqs, scores = self.sequence_generator.generate_greedy(
+                seqs, scores = generator.generate_greedy(
                     prompts,
-                    max_length=generation_config['max_length']
+                    temperature=generation_config['temperature'],
+                    repeat_penalty=generation_config['repeat_penalty'],
                 )
 
         # Post-process sequences (trim upto EOS token)
