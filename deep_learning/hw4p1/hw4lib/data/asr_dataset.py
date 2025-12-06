@@ -248,7 +248,7 @@ class ASRDataset(Dataset):
                 - golden_transcript: LongTensor  (time) or None
         """
         # TODO: Load features
-        feat = torch.LongTensor(self.feats[idx])
+        feat = torch.FloatTensor(self.feats[idx])
 
         # TODO: Apply normalization
         if self.config['norm'] == 'global_mvn':

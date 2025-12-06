@@ -77,6 +77,8 @@ class ASRTrainer(BaseTrainer):
                 zero_infinity=True
             )
 
+        self.scaler = torch.amp.GradScaler()
+
 
     def _train_epoch(self, dataloader):
         """
@@ -104,15 +106,19 @@ class ASRTrainer(BaseTrainer):
         for i, batch in enumerate(dataloader):
             # TODO: Unpack batch and move to device
             feats, targets_shifted, targets_golden, feat_lengths, transcript_lengths = batch
+            feats = feats.to(self.device)
+            targets_shifted = targets_shifted.to(self.device)
+            targets_golden = targets_golden.to(self.device)
+            feat_lengths = feat_lengths.to(self.device)
+            transcript_lengths = transcript_lengths.to(self.device)
 
             with torch.autocast(device_type=self.device, dtype=torch.float16):
                 # TODO: get raw predictions and attention weights and ctc inputs from model
                 seq_out, curr_att, ctc_inputs = self.model(
-                    feats,
-                    feat_lengths,
-                    targets_shifted,
-                    transcript_lengths,
-                    return_attentions=True
+                    padded_sources=feats,
+                    padded_targets=targets_shifted,
+                    source_lengths=feat_lengths,
+                    target_lengths=transcript_lengths
                 )
 
                 # Update running_att with the latest attention weights
@@ -127,9 +133,9 @@ class ASRTrainer(BaseTrainer):
                 # TODO: Calculate CTC loss if needed
                 if self.ctc_weight > 0:
                     ctc_loss = self.ctc_criterion(
-                        ctc_inputs.log_softmax(2),
+                        ctc_inputs['log_probs'],
                         targets_golden,
-                        feat_lengths,
+                        ctc_inputs['lengths'],
                         transcript_lengths
                     )
                     loss = ce_loss + self.ctc_weight * ctc_loss
@@ -149,7 +155,6 @@ class ASRTrainer(BaseTrainer):
             loss = loss / self.config['training']['gradient_accumulation_steps']
 
             # TODO: Backpropagate the loss
-            self.scaler = torch.amp.GradScaler()
             self.scaler.scale(loss).backward()
 
             # Only update weights after accumulating enough gradients
@@ -219,8 +224,8 @@ class ASRTrainer(BaseTrainer):
         results = self.recognize(dataloader)
 
         # TODO: Extract references and hypotheses from results
-        references = [res['reference'] for res in results]
-        hypotheses = [res['hypothesis'] for res in results]
+        references = [res['target'] for res in results]
+        hypotheses = [res['generated'] for res in results]
         # Calculate metrics on full batch
         metrics = self._calculate_asr_metrics(references, hypotheses)
 
@@ -400,6 +405,9 @@ class ASRTrainer(BaseTrainer):
                 # TODO: Unpack batch and move to device
                 # TODO: Handle both cases where targets may or may not be None (val set v. test set)
                 feats, _, targets_golden, feat_lengths, _ = batch
+                feats = feats.to(self.device)
+                feat_lengths = feat_lengths.to(self.device)
+                targets_golden = targets_golden.to(self.device) if targets_golden is not None else None
 
                 # TODO: Encode speech features to hidden states
                 encoder_output, pad_mask_src, _, _ = self.model.encode(feats, feat_lengths)
@@ -422,14 +430,21 @@ class ASRTrainer(BaseTrainer):
                 # TODO: Generate sequences
                 if recognition_config['beam_width'] > 1:
                     # TODO: If you have implemented beam search, generate sequences using beam search
-                    seqs, scores = NotImplementedError, NotImplementedError
-                    raise NotImplementedError # Remove if you implemented the beam search method
+                    seqs, scores = generator.generate_beam(
+                        prompts,
+                        beam_width=recognition_config['beam_width'],
+                        temperature=recognition_config['temperature'],
+                        repeat_penalty=recognition_config['repeat_penalty']
+                    )
                     # Pick best beam
                     seqs = seqs[:, 0, :]
                     scores = scores[:, 0]
                 else:
                     # TODO: Generate sequences using greedy search
-                    seqs, scores = generator.generate(prompts, score_fn=get_score)
+                    seqs, scores = generator.generate_greedy(
+                        x=prompts,
+                        temperature=recognition_config['temperature'],
+                        repeat_penalty=recognition_config['repeat_penalty'])
 
                 # Clean up
                 del feats, feat_lengths, encoder_output, pad_mask_src, prompts
